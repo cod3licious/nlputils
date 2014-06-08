@@ -163,7 +163,7 @@ def _cvarrange(docfeats,doccats,wtype='var'):
     """
     docfeats: a dict with doc_id:{term:count}
     doccats: a dict with doc_id:[categories]
-    wtype: var or range
+    wtype: var, mdiff or range
     """
     # invert document category dict to get dict[cat]:[docs]
     catdict = invert_dict(doccats)
@@ -179,11 +179,14 @@ def _cvarrange(docfeats,doccats,wtype='var'):
             # number of documents in the category that also contain term t
             Ntc = float(len(set(catdict[cat]) & set(termdocs[term].keys())))
             scores.append(Ntc/Nc)
-        # the weight for the term is either the variance or the range
+        # the weight for the term is either the variance, range, or max diff from mean
         if wtype == 'var':
             Dw[term] = np.var(scores)
-        else:
+        elif wtype == 'range':
             Dw[term] = np.max(scores) - np.min(scores)
+        else:
+            mscore = np.mean(scores)
+            Dw[term] = max([np.abs(mscore-s) for s in scores])
     return norm_dict(Dw)
 
 def apply_weights(docfeats,Dw,renorm=None):
@@ -236,7 +239,7 @@ def _weights_wrapper(docfeats, doccats={}, weight='idf', doc_ids=[]):
     elif weight == 'saliency':
         return _saliency(docfeats)
     # class dependent weights
-    elif weight in ('infogain','odds','modds','cvar','crange'):
+    elif weight in ('infogain','odds','modds','cvar','crange','cmdiff'):
         if not doccats:
             print "ERROR: need doccats for weight depending on categories"
             return {}
@@ -250,6 +253,8 @@ def _weights_wrapper(docfeats, doccats={}, weight='idf', doc_ids=[]):
             return _cvarrange(docfeats,doccats,wtype='var')
         elif weight == 'crange':
             return _cvarrange(docfeats,doccats,wtype='range')
+        elif weight == 'cmdiff':
+            return _cvarrange(docfeats,doccats,wtype='mdiff')
     else:
         print "ERROR: weight not known!!"
         return {}

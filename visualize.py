@@ -3,8 +3,9 @@ import json
 from scipy.sparse.linalg import eigsh
 import numpy as np
 from misc import invert_dict
+import matplotlib.pyplot as plt
 
-def tsne_sim(S, no_dims=2):
+def tsne_sim(S, no_dims=2, earlystop=True):
     """
     TSNE_Sim Performs symmetric t-SNE on similarity matrix S
        mappedX = tsne_sim(S, no_dims)
@@ -35,6 +36,7 @@ def tsne_sim(S, no_dims=2):
     mappedX = .0001 * np.random.randn(n, no_dims)
     y_incs  = np.zeros(mappedX.shape)
     gains = np.ones(mappedX.shape)
+    last_cost = np.inf
     # Run the iterations
     for itr in range(max_iter):       
         # Compute joint probability that point i and j are neighbors
@@ -64,6 +66,10 @@ def tsne_sim(S, no_dims=2):
                 cost = const - np.sum(S/4. * np.log(Q))
             else:
                 cost = const - np.sum(S * np.log(Q))
+                if earlystop and cost >= last_cost - 0.0000001:
+                    break
+                else:
+                    last_cost = cost
             print 'Iteration %i: error is %.5f'%(itr+1, cost)
     return mappedX
 
@@ -82,7 +88,7 @@ def classical_scaling(K, nev=2, evcrit='LM'):
     H = np.eye(n) - np.tile(1./n,(n,n))
     B = np.dot(np.dot(H,K),H)
     D, V = eigsh((B+B.T)/2.,k=nev,which=evcrit) # guard against spurious complex e-vals from roundoff
-    return D.real, V.real
+    return np.dot(V.real,np.diag(np.sqrt(np.abs(D.real))))
 
 def get_colors(N=100):
     HSV_tuples = [(x*1.0/N, 1., 0.8) for x in range(N)]
@@ -110,6 +116,29 @@ def pretty_coloring(X, varcol=0, N=100):
     colors = np.array(get_colors(N))
     return colors[coloridx,:]
 
+def proj2d(K, use_tsne=True, evcrit='LM'):
+    """
+    wrapper function to project data to 2d 
+    """
+    if use_tsne:
+        print "performing tSNE: %i datapoints"%K.shape[0]
+        X = tsne_sim(K)
+        x = X[:,0]
+        y = X[:,1]
+    else:
+        print "performing classical scaling: %i datapoints"%K.shape[0]
+        if evcrit=='LM' or evcrit=='SM':
+            X = classical_scaling(K, evcrit=evcrit)
+            x = X[:,0]
+            y = X[:,1]
+        elif evcrit=='LS':
+            x = classical_scaling(K, nev=1, evcrit='LM')
+            y = classical_scaling(K, nev=1, evcrit='SM')
+        else:
+            print "ERROR: evcrit not known!"
+            return None
+    return x, y
+
 def prepare_viz(doc_ids, docdict, doccats, K, catdesc={}, use_tsne=True, filepath='docs.json', evcrit='LM'):
     """
     function to prepare text data for 2 dim visualization by saving a json file, that is a list of dicts,
@@ -133,23 +162,7 @@ def prepare_viz(doc_ids, docdict, doccats, K, catdesc={}, use_tsne=True, filepat
     colorlist = get_colors(len(categories))
     colordict = {cat:(255*colorlist[i][0],255*colorlist[i][1],255*colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
     # get x and y for visualization
-    if use_tsne:
-        print "performing tSNE"
-        X = tsne_sim(K)
-        x = X[:,0]
-        y = X[:,1]
-    else:
-        print "performing classical scaling"
-        if evcrit=='LM' or evcrit=='SM':
-            D, X = classical_scaling(K, evcrit=evcrit)
-            x = X[:,0]
-            y = X[:,1]
-        elif evcrit=='LS':
-            D, x = classical_scaling(K, nev=1, evcrit='LM')
-            D, y = classical_scaling(K, nev=1, evcrit='SM')
-        else:
-            print "ERROR: evcrit not known!"
-            return None
+    x, y = proj2d(K, use_tsne, evcrit)
     # save as json
     print "saving json"
     data_json = []
@@ -157,3 +170,35 @@ def prepare_viz(doc_ids, docdict, doccats, K, catdesc={}, use_tsne=True, filepat
         data_json.append({"id":key,"x":x[i],"y":y[i],"title":str(key)+" (%s)"%catdesc[doccats[key][0]],"description":docdict[key],"color":"rgb(%i,%i,%i)"%colordict[doccats[key][0]]})
     with open(filepath,"w") as f:
         f.write(json.dumps(data_json,indent=2))
+
+
+def basic_viz(doc_ids, doccats, K, catdesc={}, use_tsne=True, evcrit='LM'):
+    """
+    plot a scatter plot of the data in 2d
+    Input:
+        doc_ids: list with keys for docdict and doccats
+        doccats: dict with docid:cat
+        K: kernel/similarity matrix in the order of doc_ids
+        catdesc: category descriptions (for legend)
+        use_tsne: if tsne instead of classical_scaling should be used to get 2d representations (default)
+        evcrit: how eigenvalues should be selected ('LM' for largest real part, 'SM' for smallest real part, 
+                'LS' for 1 large and 1 small one)
+    """
+    # pretty preprocessing
+    categories = set(invert_dict(doccats).keys())
+    if not catdesc:
+        catdesc = {cat:cat for cat in categories}    
+    colorlist = get_colors(len(categories))
+    colordict = {cat:(colorlist[i][0],colorlist[i][1],colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
+    # get x and y for visualization
+    x, y = proj2d(K, use_tsne, evcrit)
+    # plot scatter plot
+    plt.figure()
+    for j, cat in enumerate(sorted(categories)):
+        # get docids that belong to the current category
+        didx_temp = [i for i, did in enumerate(doc_ids) if cat in doccats[did]]
+        plt.plot(x[didx_temp], y[didx_temp], 'o', label=catdesc[cat], color=colordict[cat], alpha=0.5, markeredgewidth=0)
+    plt.xticks([],[])
+    plt.yticks([],[])
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), numpoints=1)
+    #plt.tight_layout()
