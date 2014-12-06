@@ -2,10 +2,11 @@ import colorsys
 import json
 from scipy.sparse.linalg import eigsh
 import numpy as np
-from misc import invert_dict
+from scipy.spatial.distance import pdist, squareform
+from misc import invert_dict1
 import matplotlib.pyplot as plt
 
-def tsne_sim(S, no_dims=2, earlystop=True):
+def tsne_sim(S, no_dims=2, earlystop=True, init='random'):
     """
     TSNE_Sim Performs symmetric t-SNE on similarity matrix S
        mappedX = tsne_sim(S, no_dims)
@@ -15,7 +16,87 @@ def tsne_sim(S, no_dims=2, earlystop=True):
      The matrix S is assumed to be symmetric, sum up to 1, and have zeros
      on the diagonal.
      The low-dimensional data representation is returned in mappedX.
-    """      
+    """
+    # Initialize some variables
+    n = S.shape[0]                                     # number of instances
+    momentum = 0.5                                     # initial momentum
+    final_momentum = 0.8                               # value to which momentum is changed
+    mom_switch_iter = 250                              # iteration at which momentum is changed
+    exageration = 8.                                   # by how much we lie about the P-values
+    stop_lying_iter = 100                              # iteration at which lying about P-values is stopped
+    max_iter = 1500                                    # maximum number of iterations
+    epsilon = 500.                                     # initial learning rate
+    min_gain = .01                                     # minimum gain for delta-bar-delta   
+    # initialize the solution
+    if init == 'kpca' and no_dims == 2:
+        # kPCA initialization
+        x, y = proj2d(S, use_tsne=False)
+        mappedX = np.zeros((n, no_dims))
+        mappedX[:,0] = x
+        mappedX[:,1] = y
+    else:
+        mappedX = .0001 * np.random.randn(n, no_dims)
+    y_incs  = np.zeros(mappedX.shape)
+    gains = np.ones(mappedX.shape)
+    last_cost = np.inf
+    # Make sure S-vals are set properly
+    np.fill_diagonal(S, 0.)                            # set diagonal to zero
+    S = 0.5 * (S + S.T)                                # symmetrize S-values
+    S /= np.sum(S)                                     # make sure S-values sum to one
+    S = np.maximum(S, 1e-12)
+    const = np.sum(S * np.log(S))                      # constant in KL divergence
+    S *= exageration                                   # lie about the S-vals to find better local minima 
+    # Run the iterations
+    for itr in range(max_iter):       
+        # Compute joint probability that point i and j are neighbors
+        sum_mappedX = np.sum(np.square(mappedX), 1)
+        # Student-t distribution
+        # num = 1 / (1 + np.add(np.add(-2 * np.dot(mappedX, mappedX.T), sum_mappedX).T, sum_mappedX))
+        num = 1 / (1 + squareform(pdist(mappedX, 'sqeuclidean')))
+        np.fill_diagonal(num, 0.)                       # set diagonal to zero
+        Q = num/np.sum(num)                             # normalize to get probabilities
+        Q = np.maximum(Q, 1e-12)
+        # Compute the gradients (faster implementation)
+        L = (S - Q) * num
+        # free some memory
+        del num
+        y_grads = 4. * np.dot((np.diag(np.sum(L, 0)) - L), mappedX) 
+        # Update the solution (note that the y_grads are actually -y_grads)
+        gains = (gains + .2) * np.invert(np.sign(y_grads) == np.sign(y_incs)) + (gains * .8) * (np.sign(y_grads) == np.sign(y_incs))
+        gains[gains < min_gain] = min_gain
+        y_incs = momentum * y_incs - epsilon * (gains * y_grads)
+        mappedX += y_incs
+        mappedX -= np.tile(np.mean(mappedX, 0),(n, 1))        
+        # Update the momentum if necessary
+        if itr == mom_switch_iter:
+            momentum = final_momentum
+        if itr == stop_lying_iter:
+            S /= exageration        
+        # Print out progress
+        if not (itr+1)%25:
+            if itr < stop_lying_iter:
+                cost = const - np.sum(S/exageration * np.log(Q))
+            else:
+                cost = const - np.sum(S * np.log(Q))
+                if earlystop and itr > mom_switch_iter and cost >= last_cost - 0.000001:
+                    break
+                else:
+                    last_cost = cost
+            print 'Iteration %i: error is %.5f'%(itr+1, cost)
+    return mappedX
+
+
+def tsne_sim_paper(S, no_dims=2, earlystop=True, init='random'):
+    """
+    TSNE_Sim Performs symmetric t-SNE on similarity matrix S
+       mappedX = tsne_sim(S, no_dims)
+
+     The function performs symmetric t-SNE on pairwise similarity matrix S 
+     to create a low-dimensional map of no_dims dimensions (default = 2).
+     The matrix S is assumed to be symmetric, sum up to 1, and have zeros
+     on the diagonal.
+     The low-dimensional data representation is returned in mappedX.
+    """
     # Initialize some variables
     n = S.shape[0]                                     # number of instances
     momentum = 0.5                                     # initial momentum
@@ -25,30 +106,37 @@ def tsne_sim(S, no_dims=2, earlystop=True):
     max_iter = 1000                                    # maximum number of iterations
     epsilon = 500.                                     # initial learning rate
     min_gain = .01                                     # minimum gain for delta-bar-delta   
+    # initialize the solution
+    if init == 'kpca' and no_dims == 2:
+        # kPCA initialization
+        x, y = proj2d(S, use_tsne=False)
+        mappedX = np.zeros((n, no_dims))
+        mappedX[:,0] = x
+        mappedX[:,1] = y
+    else:
+        mappedX = .0001 * np.random.randn(n, no_dims)
+    y_incs  = np.zeros(mappedX.shape)
+    gains = np.ones(mappedX.shape)
+    last_cost = np.inf
     # Make sure S-vals are set properly
-    np.fill_diagonal(S,0.)                             # set diagonal to zero
+    np.fill_diagonal(S, 0.)                            # set diagonal to zero
     S = 0.5 * (S + S.T)                                # symmetrize S-values
     S /= np.sum(S)                                     # make sure S-values sum to one
     S = np.maximum(S, 1e-12)
     const = np.sum(S * np.log(S))                      # constant in KL divergence
-    S *= 4.                                            # lie about the S-vals to find better local minima    
-    # Initialize the solution
-    mappedX = .0001 * np.random.randn(n, no_dims)
-    y_incs  = np.zeros(mappedX.shape)
-    gains = np.ones(mappedX.shape)
-    last_cost = np.inf
+    S *= 4.                                            # lie about the S-vals to find better local minima 
     # Run the iterations
-    for itr in range(max_iter):       
-        # Compute joint probability that point i and j are neighbors
-        sum_mappedX = np.sum(np.square(mappedX), 1)
-        # Student-t distribution
-        num = 1 / (1 + np.add(np.add(-2 * np.dot(mappedX, mappedX.T), sum_mappedX).T, sum_mappedX))
-        np.fill_diagonal(num,0.)                        # set diagonal to zero
-        Q = num/np.sum(num)                             # normalize to get probabilities
-        Q = np.maximum(Q, 1e-12)        
+    for itr in range(max_iter):
+        # Compute squared euclidean distance (...) for tdist between all mappedX
+        D = 1 / (1 + squareform(pdist(mappedX, 'sqeuclidean')))
+        # set diagonal to 0 because we always want it this way
+        np.fill_diagonal(D, 0.)
+        # Compute Q
+        Q = D / np.sum(D)
+        Q = np.maximum(Q, 1e-12)
         # Compute the gradients (faster implementation)
-        L = (S - Q) * num;
-        y_grads = 4. * np.dot((np.diag(np.sum(L, 0)) - L), mappedX)            
+        L = (S - Q) * D
+        y_grads = 4. * np.dot((np.diag(np.sum(L, 0)) - L), mappedX) 
         # Update the solution (note that the y_grads are actually -y_grads)
         gains = (gains + .2) * np.invert(np.sign(y_grads) == np.sign(y_incs)) + (gains * .8) * (np.sign(y_grads) == np.sign(y_incs))
         gains[gains < min_gain] = min_gain
@@ -66,7 +154,7 @@ def tsne_sim(S, no_dims=2, earlystop=True):
                 cost = const - np.sum(S/4. * np.log(Q))
             else:
                 cost = const - np.sum(S * np.log(Q))
-                if earlystop and cost >= last_cost - 0.0000001:
+                if earlystop and itr > mom_switch_iter and cost >= last_cost - 0.000001:
                     break
                 else:
                     last_cost = cost
@@ -81,8 +169,7 @@ def classical_scaling(K, nev=2, evcrit='LM'):
         nev: how many eigenvalues should be computed
         evcrit: how eigenvalues should be selected ('LM' for largest real part, 'SM' for smallest real part)
     Return:
-        D: a vector containing the 2 eigenvalues of K
-        V: the eigenvectors corresponding to D 
+        mappedX: n x 2 matrix of mapped data 
     """
     n, m = K.shape
     H = np.eye(n) - np.tile(1./n,(n,n))
@@ -139,7 +226,7 @@ def proj2d(K, use_tsne=True, evcrit='LM'):
             return None
     return x, y
 
-def prepare_viz(doc_ids, docdict, doccats, K, catdesc={}, use_tsne=True, filepath='docs.json', evcrit='LM'):
+def prepare_viz(doc_ids, docdict, doccats, x, y, catdesc={}, filepath='docs.json'):
     """
     function to prepare text data for 2 dim visualization by saving a json file, that is a list of dicts,
     where each dict decodes 1 doc with "id" (doc_id), "x" and "y" (2dim coordinates derived from the kernel matrix
@@ -147,8 +234,8 @@ def prepare_viz(doc_ids, docdict, doccats, K, catdesc={}, use_tsne=True, filepat
     Input:
         doc_ids: list with keys for docdict and doccats
         docdict: dict with docid:'description'
-        doccats: dict with docid:cat
-        K: kernel/similarity matrix in the order of doc_ids
+        doccats: dict with docid:[cat]
+        x, y: 2d coordinates for all data points in the order of doc_ids (use x, y = proj2d(K, use_tsne, evcrit))
         catdesc: category descriptions
         use_tsne: if tsne instead of classical_scaling should be used to get 2d representations (default)
         filepath: where the json file will be saved
@@ -156,13 +243,11 @@ def prepare_viz(doc_ids, docdict, doccats, K, catdesc={}, use_tsne=True, filepat
                 'LS' for 1 large and 1 small one)
     """
     # pretty preprocessing
-    categories = set(invert_dict(doccats).keys())
+    categories = set(invert_dict1(doccats).keys())
     if not catdesc:
         catdesc = {cat:cat for cat in categories}    
     colorlist = get_colors(len(categories))
     colordict = {cat:(255*colorlist[i][0],255*colorlist[i][1],255*colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
-    # get x and y for visualization
-    x, y = proj2d(K, use_tsne, evcrit)
     # save as json
     print "saving json"
     data_json = []
@@ -172,26 +257,24 @@ def prepare_viz(doc_ids, docdict, doccats, K, catdesc={}, use_tsne=True, filepat
         f.write(json.dumps(data_json,indent=2))
 
 
-def basic_viz(doc_ids, doccats, K, catdesc={}, use_tsne=True, evcrit='LM'):
+def basic_viz(doc_ids, doccats, x, y, catdesc={}, title=''):
     """
     plot a scatter plot of the data in 2d
     Input:
         doc_ids: list with keys for docdict and doccats
-        doccats: dict with docid:cat
-        K: kernel/similarity matrix in the order of doc_ids
+        doccats: dict with docid:[cat]
+        x, y: 2d coordinates for all data points in the order of doc_ids (use x, y = proj2d(K, use_tsne, evcrit))
         catdesc: category descriptions (for legend)
         use_tsne: if tsne instead of classical_scaling should be used to get 2d representations (default)
         evcrit: how eigenvalues should be selected ('LM' for largest real part, 'SM' for smallest real part, 
                 'LS' for 1 large and 1 small one)
     """
     # pretty preprocessing
-    categories = set(invert_dict(doccats).keys())
+    categories = set(invert_dict1(doccats).keys())
     if not catdesc:
         catdesc = {cat:cat for cat in categories}    
     colorlist = get_colors(len(categories))
     colordict = {cat:(colorlist[i][0],colorlist[i][1],colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
-    # get x and y for visualization
-    x, y = proj2d(K, use_tsne, evcrit)
     # plot scatter plot
     plt.figure()
     for j, cat in enumerate(sorted(categories)):
@@ -200,5 +283,6 @@ def basic_viz(doc_ids, doccats, K, catdesc={}, use_tsne=True, evcrit='LM'):
         plt.plot(x[didx_temp], y[didx_temp], 'o', label=catdesc[cat], color=colordict[cat], alpha=0.5, markeredgewidth=0)
     plt.xticks([],[])
     plt.yticks([],[])
+    plt.title(title)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), numpoints=1)
     #plt.tight_layout()

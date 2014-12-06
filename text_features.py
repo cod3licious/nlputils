@@ -5,13 +5,13 @@ from math import log
 from unidecode import unidecode
 from misc import norm_dict, invert_dict2, select_copy
 
-def extract_features(text, norm='max', allnum=True):
+def extract_features(text, norm='max', numfeat='all'):
     """
     Input:
         text: some text for which features should be computed
         norm (either None, 'max', 'nwords', or 'length'): how to normalize the counts
-        allnum (bool): how to deal with numbers - if True, all numbers will be taken as features like words,
-                       otherwise only a feature __NUMBER will be 0 or 1
+        numfeat ('all','count','bin'): how to deal with numbers - if 'all', all numbers will be taken as features like words,
+                otherwise only a feature __NUMBER will be 0 or 1 (bin) or count
     Output:
         a dictionary with (possibly normalized) counts of the occurrences or words or n-grams in the text
     """
@@ -21,12 +21,14 @@ def extract_features(text, norm='max', allnum=True):
     text = text.lower()
     # extract feature dict
     num = 0
-    if allnum:
+    if numfeat == 'all':
         wordregex = r'[A-Za-z0-9]+'
     else:
         wordregex = r'[A-Za-z]+'
-        if re.search(r"[0-9]+",text):
-            num = 1 #len(re.findall(r"[0-9]+",text))
+        if numfeat == 'count':
+            num = len(re.findall(r"[0-9]+",text))
+        elif re.search(r"[0-9]+",text):
+            num = 1
     featdict = dict(Counter(re.findall(wordregex,text)))
     if num:
         featdict['__NUMBER'] = min(num,max(featdict.values()))
@@ -75,16 +77,18 @@ def _pidf(docfeats):
     # invert the dictionary to be term:{doc_id:count}
     termdocs = invert_dict2(docfeats)
     # compute idf for every term
-    return norm_dict({term:max(0.,log((N-len(termdocs[term]+1.))/len(termdocs[term]))) for term in termdocs})
+    return norm_dict({term:max(0.,log((N-len(termdocs[term])+1.)/len(termdocs[term]))) for term in termdocs})
 
 
-def getall_features(textdict, norm='max', allnum=True, weight='idf', renorm='max', w_ids=[]):
+def getall_features(textdict, norm='max', numfeat='all', weight='idf', renorm='max', w_ids=[], verbose=False):
     """
     extracts (and normalizes) features, applies term weights and renormalizes features for a whole dict of docs
     Input:
         textdict: dict with doc_id:text
         norm (binary, max, length, nwords, None): how the term counts for each doc should be normalized
-        allnum (True or False): if numbers should be considered
+        numfeat ('all','count','bin'): if numbers should be considered
+                --> don't use count... use all if the type of number (e.g. exact year) could be important,
+                    else use bin.
         weight: possible term weights to be applied (if 'idf', etc. weights will be computed)
                 can also be a dict for precomputed weights, then they will be directly applied 
         renorm: how the features with applied weights should be renormalized
@@ -94,34 +98,38 @@ def getall_features(textdict, norm='max', allnum=True, weight='idf', renorm='max
     """
     # extract all word features and possibly normalize them
     docfeats = {}
-    print "extracting features"
+    if verbose: print "extracting features"
     for doc, text in textdict.iteritems():
-        docfeats[doc] = extract_features(text, norm, allnum)
+        docfeats[doc] = extract_features(text, norm, numfeat)
     # possibly compute weights
     if not w_ids:
         w_ids = docfeats.keys()
     if type(weight) == dict:
         Dw = weight
     elif weight == 'length':
-        print "computing length weights"
+        if verbose: print "computing length weights"
         Dw = _length(select_copy(docfeats, w_ids))
     elif weight == 'df':
-        print "computing df weights"
+        if verbose: print "computing df weights"
         Dw = _df(select_copy(docfeats, w_ids))
     elif weight == 'idf':
-        print "computing idf weights"
+        if verbose: print "computing idf weights"
         Dw = _idf(select_copy(docfeats, w_ids))
     elif weight == 'pidf':
-        print "computing pidf weights"
+        if verbose: print "computing pidf weights"
         Dw = _pidf(select_copy(docfeats, w_ids))
     else:
         Dw = {}
     # possibly apply weights and renormalize
     if Dw:
-        print "applying weights"
+        if verbose: print "applying weights"
         for doc in docfeats:
             # if the word was not in Dw (= not in the training set), delete it (otherwise it can mess with renormalization)
             docfeats[doc] = {term:docfeats[doc][term]*Dw[term] for term in docfeats[doc] if term in Dw}
             if renorm:
-                docfeats[doc] = norm_dict(docfeats[doc],norm=renorm)
+                try:
+                    docfeats[doc] = norm_dict(docfeats[doc],norm=renorm)
+                except:
+                    print doc
+                    print docfeats[doc]
     return docfeats
