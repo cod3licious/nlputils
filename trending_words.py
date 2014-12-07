@@ -3,7 +3,7 @@ import sys
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-from misc_utils.dict_utils import invert_dict0, invert_dict1
+from nlputils.dict_utils import invert_dict0, invert_dict1
 
 
 def trending_fun_tpr(tpr, fpr):

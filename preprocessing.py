@@ -8,7 +8,7 @@ from nlputils.dict_utils import norm_dict, invert_dict1, invert_dict2, select_co
 
 def preprocess_text(text):
     # clean the text: no fucked up characters, html, ...
-    text = unidecode(.decode("utf-8"))
+    text = unidecode(text.decode("utf-8"))
     text = re.sub(r"http(s)?://\S*", " ", text) # remove links (other html crap is assumed to be removed by bs)
     text = text.lower()
     # clean out non-alphabet characters and normalize whitespace
@@ -127,7 +127,7 @@ def texts2features(textdict, identify_bigrams=True, norm='max', weight=True, ren
         textdict_pp = replace_bigrams(textdict_pp, bigrams)
     # split texts into tokens
     docfeats = {}
-    for did in docids
+    for did in docids:
         featdict = dict(Counter(textdict_pp[did].split()))
         # normalize
         if norm:
