@@ -51,11 +51,13 @@ def vec2dict(vector):
     """
     return {i:val for i, val in enumerate(vector)}
 
-def norm_dict(somedict, norm='max'):
+def norm_dict(somedict, norm='max', n_all=0):
     """
     Input:
         somedict: a dictionary with values of something
         norm (either 'max', 'sum', or 'length'): how to normalize the values
+        n_all: for 'mean' and 'std' we need to know the total number of values
+               (if the dict is sparse, zeros are not included)
     Output:
         a dictionary with the normalized values
     """
@@ -71,9 +73,9 @@ def norm_dict(somedict, norm='max'):
     elif norm == 'length':
         N = np.linalg.norm(somedict.values())
     elif norm == 'mean':
-        N = np.mean(somedict.values())
+        N = np.mean(somedict.values()+[0.]*(n_all-len(somedict)))
     elif norm == 'std':
-        N = np.std(somedict.values())
+        N = np.std(somedict.values()+[0.]*(n_all-len(somedict)))
     else:
         print "ERROR: norm not known!!"
         return somedict

@@ -78,9 +78,39 @@ def basic_viz(doc_ids, doccats, x, y, catdesc={}, title=''):
     for j, cat in enumerate(sorted(categories)):
         # get docids that belong to the current category
         didx_temp = [i for i, did in enumerate(doc_ids) if cat == doccats[did]]
-        plt.plot(x[didx_temp], y[didx_temp], 'o', label=catdesc[cat], color=colordict[cat], alpha=0.5, markeredgewidth=0)
+        plt.plot(x[didx_temp], y[didx_temp], 'o', label=catdesc[cat], color=colordict[cat], alpha=0.6, markeredgewidth=0)
     plt.xticks([],[])
     plt.yticks([],[])
+    #plt.axis('equal')
     plt.title(title)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), numpoints=1)
     #plt.tight_layout()
+
+def json2plot(jsonpath, title='', baseline=True):
+    data_json = json.load(open(jsonpath))
+    doc_ids = [d["id"] for d in data_json]
+    x = np.array([d["x"] for d in data_json])
+    y = np.array([d["y"] for d in data_json])
+    if baseline:
+        catdesc = { "moviereviews neg": 1,
+                    "moviereviews pos": 2,
+                    "ohsumed C04": 3,
+                    "ohsumed C10": 4,
+                    "ohsumed C14": 5,
+                    "ohsumed C23": 6,
+                    "reuters coffee": 7,
+                    "reuters crude": 8,
+                    "reuters gold": 9,
+                    "reuters grain": 10,
+                    "reuters interest": 11,
+                    "reuters money-supply": 12,
+                    "reuters sugar": 13,
+                    "reuters trade": 14,
+                    "pmcpar abs-int-dis": 15,
+                    "pmcpar methods": 16,
+                    "pmcpar results": 17 }       
+        doccats = {d["id"]:catdesc[d["title"].split("(")[-1][:-1]] for d in data_json}
+        basic_viz(doc_ids, doccats, x, y, {v:k for k, v in catdesc.iteritems()}, title)
+    else:
+        doccats = {d["id"]:d["title"].split("(")[-1][:-1] for d in data_json}
+        basic_viz(doc_ids, doccats, x, y, {}, title)

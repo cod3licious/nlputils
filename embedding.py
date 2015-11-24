@@ -2,7 +2,7 @@ import numpy as np
 from scipy.sparse.linalg import eigsh
 from scipy.spatial.distance import pdist, squareform
 
-def tsne_sim(S, no_dims=2, earlystop=True, init='random'):
+def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True):
     """
     TSNE_Sim Performs symmetric t-SNE on similarity matrix S
        mappedX = tsne_sim(S, no_dims)
@@ -78,7 +78,8 @@ def tsne_sim(S, no_dims=2, earlystop=True, init='random'):
                     break
                 else:
                     last_cost = cost
-            print('Iteration %i: error is %.5f'%(itr+1, cost))
+            if verbose:
+                print('Iteration %i: error is %.5f'%(itr+1, cost))
     return mappedX
 
 def classical_scaling(K, nev=2, evcrit='LM'):

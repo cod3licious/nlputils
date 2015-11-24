@@ -2,7 +2,7 @@ import numpy as np
 from nlputils.preprocessing import features2mat
 from nlputils.simcoefs import compute_sim
 
-def dist2kernel(D, perp=30, tol=10e-4):
+def dist2kernel(D, perp=30, tol=10e-4, verbose=False):
     """
     Given a distance matrix, select an appropriate sigma for every datapoint such that the perplexity of 
     the resulting distribution is equal to perp (see tsne paper)
@@ -26,7 +26,8 @@ def dist2kernel(D, perp=30, tol=10e-4):
         # compute the entropy of every distribution and how far we're off the desired entropy
         hdiffs = -np.sum(P * np.log2(np.maximum(P, 1e-12)), 0) - logPerp
         err = np.sum(np.abs(hdiffs))
-        print("iteration %i: sum of errors: %.2f" % (it, err))
+        if verbose:
+            print("iteration %i: sum of errors: %.2f" % (it, err))
         if err <= tol:
             break
         # update sigmas
@@ -35,7 +36,8 @@ def dist2kernel(D, perp=30, tol=10e-4):
         sigmas[hdiffs>0] = 0.5*(sigmas[hdiffs>0] + sigmas_max[hdiffs>0])
         sigmas[hdiffs<0] = 0.5*(sigmas[hdiffs<0] + sigmas_min[hdiffs<0])
     # sanity check
-    print(np.histogram(sigmas,20))
+    if verbose:
+        print(np.histogram(sigmas,20))
     # compute P for real
     P = np.exp(-D * sigmas)
     np.fill_diagonal(P, 0.)     # set diagonal to 0
@@ -61,9 +63,10 @@ def compute_K(docids, docfeats, sim='linear', normalize=False):
             featmat, _ = features2mat(docfeats, docids, featurenames=[])
         else:
             featmat = docfeats
-        # possibly normalize vectors
-        if sim in ('cosine', 'angularsim', 'angulardist'):
-            featmat /= np.linalg.norm(featmat, axis=0)
+        # possibly normalize vectors - doesn't work yet because the featmat is sparse and numpy stupid
+        # if sim in ('cosine', 'angularsim', 'angulardist'):
+        #     fnorm = np.linalg.norm(featmat, axis=1)
+        #     featmat /= fnorm.reshape(featmat.shape[0],1)
         # compute similarity matrix
         S = featmat.dot(featmat.T).toarray()
         # transform further

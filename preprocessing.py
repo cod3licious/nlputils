@@ -6,15 +6,18 @@ from scipy.sparse import csr_matrix, dok_matrix
 from unidecode import unidecode
 from nlputils.dict_utils import norm_dict, invert_dict1, invert_dict2, select_copy
 
-def preprocess_text(text):
+def preprocess_text(text, to_lower=True, norm_num=False):
     # clean the text: no fucked up characters, html, ...
     text = unidecode(text.decode("utf-8"))
     text = re.sub(r"http(s)?://\S*", " ", text) # remove links (other html crap is assumed to be removed by bs)
-    text = text.lower()
+    if to_lower:
+        text = text.lower()
+    if norm_num:
+        text = re.sub(r"[0-9]", "1", text)  # normalize numbers
     # clean out non-alphabet characters and normalize whitespace
-    text = re.sub(r"[^a-z0-9-]+"," ", text)
-    text = re.sub(r"\s+"," ", text)
-    return text
+    text = re.sub(r"[^A-Za-z0-9-]+", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
 def get_bigram_scores(text_words, min_bgfreq=2.):
     """
@@ -50,10 +53,10 @@ def get_bigram_scores(text_words, min_bgfreq=2.):
     for bigram in bigram_freq:
         # discount to ensure a word combination occurred a sufficient amount of times
         if max(0.,bigram_freq[bigram]-min_bgfreq):
-            bigram_scores[bigram] = bigram_freq[bigram]/min(unigram_freq[bigram.split()[0]],unigram_freq[bigram.split()[1]])
+            bigram_scores[bigram] = bigram_freq[bigram]/max(unigram_freq[bigram.split()[0]],unigram_freq[bigram.split()[1]])
     return bigram_scores
 
-def find_bigrams(textdict, threshold=0.75):
+def find_bigrams(textdict, threshold=0.1):
     """
     find bigrams in the texts
     Input:
@@ -101,7 +104,7 @@ def compute_idf(docfeats):
     # compute idf for every term
     return norm_dict({term:log(N/len(termdocs[term])) for term in termdocs})
 
-def texts2features(textdict, identify_bigrams=True, norm='max', weight=True, renorm='max'):
+def texts2features(textdict, identify_bigrams=True, norm='max', weight=True, renorm='length', w_ids=[]):
     """
     preprocess texts, count how often each word occurs, weight counts, normalize
     Input:
@@ -112,12 +115,13 @@ def texts2features(textdict, identify_bigrams=True, norm='max', weight=True, ren
         - weight: if idf term weights should be applied
                   can also be a dict for precomputed weights, then they will be directly applied 
         - renorm: how the features with applied weights should be renormalized
+        - w_ids: if only a portion of all texts should be used to compute the weights (e.g. only training data)
     Returns:
         - docfeats: a dict with {docid: {term: (normalized/weighted) count}}
     """
     docids = set(textdict.keys())
     # pre-process texts
-    textdict_pp = {preprocess_text(textdict[did]) for did in docids}
+    textdict_pp = {did:preprocess_text(textdict[did]) for did in docids}
     # possibly find bigrams
     if identify_bigrams:
         if isinstance(identify_bigrams, list):
@@ -138,12 +142,15 @@ def texts2features(textdict, identify_bigrams=True, norm='max', weight=True, ren
         if isinstance(weight, dict):
             Dw = weight
         else:
-            Dw = compute_idf(docfeats)
+            if not w_ids:
+                w_ids = docfeats.keys()
+            Dw = compute_idf(select_copy(docfeats, w_ids))
         for did in docids:
             # if the word was not in Dw (= not in the training set), delete it (otherwise it can mess with renormalization)
             docfeats[did] = {term:docfeats[did][term]*Dw[term] for term in docfeats[did] if term in Dw}
-            if renorm:
-                docfeats[did] = norm_dict(docfeats[did], norm=renorm)
+    if renorm:
+        for did in docids:
+            docfeats[did] = norm_dict(docfeats[did], norm=renorm)
     return docfeats
         
 def features2mat(docfeats, docids, featurenames=[]):
