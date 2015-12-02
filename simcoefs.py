@@ -4,7 +4,7 @@ from math import sqrt, log
 import numpy as np
 from sys import float_info as fi
 
-def _polynomial_sim(x,y, p=2):
+def _polynomial_sim(x, y, p=2):
     """
     polynomial/linear kernel
     compute the similarity between the dicts x and y with terms + their counts
@@ -17,7 +17,7 @@ def _polynomial_sim(x,y, p=2):
         return 0.
     return float(sum([x[word]*y[word] for word in s]))**p
 
-def _sigmoidal_sim(x,y):
+def _sigmoidal_sim(x, y):
     """
     sigmoidal kernel
     compute the similarity between the dicts x and y with terms + their counts
@@ -29,7 +29,7 @@ def _sigmoidal_sim(x,y):
         return 0.
     return np.tanh(sum([x[word]*y[word] for word in s]))
 
-def _histint_sim(x,y):
+def _histint_sim(x, y):
     """
     histogram intersection kernel
     compute the similarity between the dicts x and y with terms + their counts
@@ -41,7 +41,7 @@ def _histint_sim(x,y):
         return 0.
     return float(sum([min(x[word],y[word]) for word in s]))
 
-def _gaussian_sim(x,y, gamma=.25):
+def _gaussian_sim(x, y, gamma=.25):
     """
     gaussian rbf kernel with width 1/gamma
     compute the similarity between the dicts x and y with terms + their counts
@@ -52,7 +52,7 @@ def _gaussian_sim(x,y, gamma=.25):
     sy = set(y.keys()).difference(s)
     return np.exp(-gamma*float(sum([(x[word]-y[word])**2 for word in s])+sum([(x[word])**2 for word in sx])+sum([(y[word])**2 for word in sy])))
 
-def _minkowski_sim(x,y, p=3):
+def _minkowski_sim(x, y, p=3):
     """
     minkowski distance: p=1: manhattan, p=2: squared euclidean, etc. returned with - as a pseudo similarity
     compute the similarity between the dicts x and y with terms + their counts
@@ -63,7 +63,7 @@ def _minkowski_sim(x,y, p=3):
     sy = set(y.keys()).difference(s)
     return 1./(fi.epsilon + float(sum([np.abs(x[word]-y[word])**p for word in s])+sum([x[word]**p for word in sx])+sum([y[word]**p for word in sy])))
 
-def _canberra_sim(x,y, p=1):
+def _canberra_sim(x, y, p=1):
     """
     canberra distance p=1 / chi^2 with p=2; returned with - as a pseudo similarity
     compute the similarity between the dicts x and y with terms + their counts
@@ -74,7 +74,7 @@ def _canberra_sim(x,y, p=1):
     y = defaultdict(float,y)
     return 1./(fi.epsilon + float(sum([np.abs(x[word]-y[word])**p/float(x[word]+y[word]) for word in s])))
 
-def _chebyshev_sim(x,y):
+def _chebyshev_sim(x, y):
     """
     1 - chebyshev distance, as a pseudo similarity, only works if counts are normalized to be <= 1
     compute the similarity between the dicts x and y with terms + their counts
@@ -85,7 +85,7 @@ def _chebyshev_sim(x,y):
     y = defaultdict(float,y)
     return 1.- float(max([np.abs(x[word]-y[word]) for word in s]))
 
-def _hellinger_sim(x,y):
+def _hellinger_sim(x, y):
     """
     hellinger distance, returned with - as a pseudo similarity
     compute the similarity between the dicts x and y with terms + their counts
@@ -96,7 +96,7 @@ def _hellinger_sim(x,y):
     sy = set(y.keys()).difference(s)
     return 1./(fi.epsilon + (sum([(sqrt(float(x[word]))-sqrt(float(y[word])))**2 for word in s])+float(sum([x[word] for word in sx]))+float(sum([y[word] for word in sy]))))
 
-def _jenshan_sim(x,y):
+def _jenshan_sim(x, y):
     """
     jensen-shannon distance, returned with - as a pseudo similarity
     compute the similarity between the dicts x and y with terms + their counts
@@ -114,21 +114,21 @@ def _jenshan_sim(x,y):
         return h
     return 1./(fi.epsilon + float(sum([H(float(x[word]),float(y[word])) for word in s])))
 
-def _simpson_sim(x,y):
+def _simpson_sim(x, y):
     """
     simpson similarity
     compute the similarity between the dicts x and y with terms + their counts
     """
     return _histint_sim(x,y)/min(_histint_sim(x,x),_histint_sim(y,y))
 
-def _braun_sim(x,y):
+def _braun_sim(x, y):
     """
     braun-blanquet similarity
     compute the similarity between the dicts x and y with terms + their counts
     """
     return _histint_sim(x,y)/max(_histint_sim(x,x),_histint_sim(y,y))
 
-def _kulczynski_sim(x,y):
+def _kulczynski_sim(x, y):
     """
     kulczynski (2) similarity
     compute the similarity between the dicts x and y with terms + their counts
@@ -136,7 +136,7 @@ def _kulczynski_sim(x,y):
     a = _histint_sim(x,y)
     return 0.5*(a/_histint_sim(x,x)+a/_histint_sim(y,y))
 
-def _jaccard_sim(x,y):
+def _jaccard_sim(x, y):
     """
     jaccard similarity
     compute the similarity between the dicts x and y with terms + their counts
@@ -144,21 +144,21 @@ def _jaccard_sim(x,y):
     a = _histint_sim(x,y)
     return a/(_histint_sim(x,x)+_histint_sim(y,y)-a)
 
-def _dice_sim(x,y):
+def _dice_sim(x, y):
     """
     czekanowski, sorensen-dice similarity
     compute the similarity between the dicts x and y with terms + their counts
     """
     return 2.*_histint_sim(x,y)/(_histint_sim(x,x)+_histint_sim(y,y))
 
-def _otsuka_sim(x,y):
+def _otsuka_sim(x, y):
     """
     otsuka, ochiai similarity
     compute the similarity between the dicts x and y with terms + their counts
     """
     return _histint_sim(x,y)/(sqrt(_histint_sim(x,x))*sqrt(_histint_sim(y,y)))
 
-def _sokal_sim(x,y):
+def _sokal_sim(x, y):
     """
     sokal-sneath, anderberg similarity
     compute the similarity between the dicts x and y with terms + their counts
