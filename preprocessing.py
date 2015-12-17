@@ -6,9 +6,11 @@ from scipy.sparse import csr_matrix, dok_matrix
 from unidecode import unidecode
 from nlputils.dict_utils import norm_dict, invert_dict1, invert_dict2, select_copy
 
-def preprocess_text(text, to_lower=True, norm_num=False):
+def preprocess_text(text, to_lower=True, norm_num=True):
     # clean the text: no fucked up characters, html, ...
-    text = unidecode(text.decode("utf-8"))
+    if not isinstance(text, unicode):
+        text = text.decode("utf-8")
+    text = unidecode(text)
     text = re.sub(r"http(s)?://\S*", " ", text) # remove links (other html crap is assumed to be removed by bs)
     if to_lower:
         text = text.lower()
@@ -86,7 +88,7 @@ def replace_bigrams(textdict, bigrams):
         text = textdict[did]
         for bigram in bigrams:
             if bigram in text:
-                text = text.replace(bigram, "%s_%s"%(bigram.split()[0],bigram.split()[1]))
+                text = text.replace(bigram, "%s_%s" % bigram.split())
         textdict[did] = text
     return textdict
 
@@ -104,54 +106,83 @@ def compute_idf(docfeats):
     # compute idf for every term
     return norm_dict({term:log(N/len(termdocs[term])) for term in termdocs})
 
-def texts2features(textdict, identify_bigrams=True, norm='max', weight=True, renorm='length', w_ids=[]):
+
+class FeatureTransform(object):
     """
-    preprocess texts, count how often each word occurs, weight counts, normalize
-    Input:
-        - textdict: a dict with {docid: text}
+    FeatureTransform
+
+    a class to transform text into features (similar to sklearn classes)
+
+    Usage:
+        # initialize the FeatureTransformer
+        ft = FeatureTransform(norm='max', weight=True, renorm='length', identify_bigrams=True)
+        # use the training ids to compute the weights but transform all documents
+        docfeats = ft.texts2features(textdict, trainids)
+        # transform a set of new documents as well using the same weights and identified bigrams
+        newdocfeats = ft.texts2features(newtextdict)
+
+    Attributes:
         - identify_bigrams: if bigrams should be found and replaced 
-                            (if it is a list, these are assumed to be the pre-identified bigrams)
         - norm (binary, max, length, sum, None): how the term counts for each doc should be normalized
         - weight: if idf term weights should be applied
-                  can also be a dict for precomputed weights, then they will be directly applied 
         - renorm: how the features with applied weights should be renormalized
-        - w_ids: if only a portion of all texts should be used to compute the weights (e.g. only training data)
-    Returns:
-        - docfeats: a dict with {docid: {term: (normalized/weighted) count}}
     """
-    docids = set(textdict.keys())
-    # pre-process texts
-    textdict_pp = {did:preprocess_text(textdict[did]) for did in docids}
-    # possibly find bigrams
-    if identify_bigrams:
-        if isinstance(identify_bigrams, list):
-            bigrams = identify_bigrams
-        else:
-            bigrams = find_bigrams(textdict_pp)
-        textdict_pp = replace_bigrams(textdict_pp, bigrams)
-    # split texts into tokens
-    docfeats = {}
-    for did in docids:
-        featdict = dict(Counter(textdict_pp[did].split()))
-        # normalize
-        if norm:
-            featdict = norm_dict(featdict, norm=norm)
-        docfeats[did] = featdict
-    # possibly compute idf weights and re-normalize
-    if weight:
-        if isinstance(weight, dict):
-            Dw = weight
-        else:
-            if not w_ids:
-                w_ids = docfeats.keys()
-            Dw = compute_idf(select_copy(docfeats, w_ids))
+    
+    def __init__(self, norm='max', weight=True, renorm='length', identify_bigrams=True,
+                 to_lower=True, norm_num=True, bg_threshold=0.1):
+        self.norm = norm
+        self.weight = weight
+        self.renorm = renorm
+        self.identify_bigrams = identify_bigrams
+        self.to_lower = to_lower
+        self.norm_num = norm_num
+        self.bg_threshold = bg_threshold
+        self.Dw = {}
+        self.bigrams = []
+        
+    def texts2features(self, textdict, fit_ids=[]):
+        """
+        preprocess texts, count how often each word occurs, weight counts, normalize
+        If this is called the first time, possibly the idf weights and bigrams are computed (using the documents
+            specified in fit_ids), in future calls, the precomputed weights and bigrams are used, e.g. when applying
+            the routine to new test documents.
+        Input:
+            - textdict: a dict with {docid: text}
+            - fit_ids: if only a portion of all texts should be used to compute the weights and identify bigrams
+                       (e.g. only training data - only used in the first initializing run)
+        Returns:
+            - docfeats: a dict with {docid: {term: (normalized/weighted) count}}
+        """
+        docids = set(textdict.keys())
+        if not fit_ids:
+            fit_ids = set(textdict.keys())
+        # pre-process texts
+        textdict_pp = {did:preprocess_text(textdict[did], self.to_lower, self.norm_num) for did in docids}
+        # possibly find bigrams
+        if self.identify_bigrams:
+            if not self.bigrams:
+                self.bigrams = find_bigrams(select_copy(textdict_pp, fit_ids), self.bg_threshold)
+            textdict_pp = replace_bigrams(textdict_pp, self.bigrams)
+        # split texts into tokens
+        docfeats = {}
         for did in docids:
-            # if the word was not in Dw (= not in the training set), delete it (otherwise it can mess with renormalization)
-            docfeats[did] = {term:docfeats[did][term]*Dw[term] for term in docfeats[did] if term in Dw}
-    if renorm:
-        for did in docids:
-            docfeats[did] = norm_dict(docfeats[did], norm=renorm)
-    return docfeats
+            featdict = dict(Counter(textdict_pp[did].split()))
+            # normalize
+            if self.norm:
+                featdict = norm_dict(featdict, norm=self.norm)
+            docfeats[did] = featdict
+        # possibly compute idf weights and re-normalize
+        if self.weight:
+            if not self.Dw:
+                self.Dw = compute_idf(select_copy(docfeats, fit_ids))
+            for did in docids:
+                # if the word was not in Dw (= not in the training set), delete it (otherwise it can mess with renormalization)
+                docfeats[did] = {term:docfeats[did][term]*self.Dw[term] for term in docfeats[did] if term in self.Dw}
+        if self.renorm:
+            for did in docids:
+                docfeats[did] = norm_dict(docfeats[did], norm=self.renorm)
+        return docfeats
+
         
 def features2mat(docfeats, docids, featurenames=[]):
     """
