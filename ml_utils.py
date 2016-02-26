@@ -28,7 +28,7 @@ def balanced_xval(Xdict, K=10, random_seed=None):
         np.random.seed(random_seed)
     Xlist = []
     for cat in Xdict:
-        Xlist.extend(list(np.random.permutation(Xdict[cat])))
+        Xlist.extend(list(np.random.permutation(sorted(Xdict[cat]))))
     for k in xrange(K):
         train = [x for i, x in enumerate(Xlist) if i % K != k]
         test = [x for i, x in enumerate(Xlist) if i % K == k]
