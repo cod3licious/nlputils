@@ -69,7 +69,7 @@ def norm_dict(somedict, norm='max', n_all=0):
     elif norm == 'sum':
         N = float(sum(somedict.values()))
     elif norm == 'max':
-        N = float(max(somedict.values()))
+        N = float(max(np.abs(somedict.values())))
     elif norm == 'length':
         N = np.linalg.norm(somedict.values())
     elif norm == 'mean':

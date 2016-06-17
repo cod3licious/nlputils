@@ -88,7 +88,7 @@ def replace_bigrams(textdict, bigrams):
         text = textdict[did]
         for bigram in bigrams:
             if bigram in text:
-                text = text.replace(bigram, "%s_%s" % bigram.split())
+                text = text.replace(bigram, "%s_%s" % tuple(bigram.split()))
         textdict[did] = text
     return textdict
 
