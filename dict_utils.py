@@ -84,3 +84,14 @@ def norm_dict(somedict, norm='max', n_all=0):
     else: 
         return somedict
 
+def combine_dicts(a, b, op=max):
+    """
+    Input:
+        a, b: dictionaries with values of something
+        op: how the values should be combined (max or sum (pass the function, not a string!))
+    Output:
+        a dictionary with all values from both dictionary. if a value occurred in only one of the
+            dicts it is returned as it was, otherwise the values corresponding to a key from both
+            dicts are combined according to op (e.g. add values together or get max of all values)
+    """
+    return dict(a.items() + b.items() + [(k, op([a[k], b[k]])) for k in set(b) & set(a)])
