@@ -45,7 +45,7 @@ def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True):
     # Run the iterations
     for itr in range(max_iter):       
         # Compute joint probability that point i and j are neighbors
-        sum_mappedX = np.sum(np.square(mappedX), 1)
+        # sum_mappedX = np.sum(np.square(mappedX), 1)
         # Student-t distribution
         # num = 1 / (1 + np.add(np.add(-2 * np.dot(mappedX, mappedX.T), sum_mappedX).T, sum_mappedX))
         num = 1 / (1 + squareform(pdist(mappedX, 'sqeuclidean')))
