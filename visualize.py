@@ -6,8 +6,9 @@ from nlputils.dict_utils import invert_dict0
 
 
 def get_colors(N=100):
-    HSV_tuples = [(x*1.0/N, 1., 0.8) for x in range(N)]
+    HSV_tuples = [(x * 1.0 / N, 1., 0.8) for x in range(N)]
     return map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
+
 
 def colorindex(X, N=100):
     """
@@ -19,7 +20,8 @@ def colorindex(X, N=100):
     # get a linear scale of the values
     lscale = np.linspace(minv, maxv, N)
     # for each value in X, find the index in the linspace
-    return [np.nonzero(lscale>=val)[0][0] for val in X]
+    return [np.nonzero(lscale >= val)[0][0] for val in X]
+
 
 def pretty_coloring(X, varcol=0, N=100):
     """
@@ -27,9 +29,10 @@ def pretty_coloring(X, varcol=0, N=100):
     varcol: variable for which different colors should be assigned
     N: number of colors that can be used
     """
-    coloridx = colorindex(X[:,varcol], N)
+    coloridx = colorindex(X[:, varcol], N)
     colors = np.array(get_colors(N))
-    return colors[coloridx,:]
+    return colors[coloridx, :]
+
 
 def prepare_viz(doc_ids, docdict, doccats, x, y, catdesc={}, filepath='docs.json', doc_ids_test=[], x_test=[], y_test=[]):
     """
@@ -48,19 +51,22 @@ def prepare_viz(doc_ids, docdict, doccats, x, y, catdesc={}, filepath='docs.json
     # pretty preprocessing
     categories = set(invert_dict0(doccats).keys())
     if not catdesc:
-        catdesc = {cat:cat for cat in categories}    
+        catdesc = {cat: cat for cat in categories}
     colorlist = get_colors(len(categories))
-    colordict = {cat:(255*colorlist[i][0],255*colorlist[i][1],255*colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
+    colordict = {cat: (255 * colorlist[i][0], 255 * colorlist[i][1], 255 * colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
     # save as json
     print("saving json")
     data_json = []
     for i, key in enumerate(doc_ids):
-        data_json.append({"id":key,"x":x[i],"y":y[i],"title":str(key)+" (%s)"%catdesc[doccats[key]],"description":docdict[key],"color":"rgb(%i,%i,%i)"%colordict[doccats[key]]})
+        data_json.append({"id": key, "x": x[i], "y": y[i], "title": str(
+            key) + " (%s)" % catdesc[doccats[key]], "description": docdict[key], "color": "rgb(%i,%i,%i)" % colordict[doccats[key]]})
     # if we have test points, do the same again
     for i, key in enumerate(doc_ids_test):
-        data_json.append({"id":key,"x":x_test[i],"y":y_test[i],"title":str(key)+" (%s) - TEST POINT"%catdesc[doccats[key]],"description":docdict[key],"color":"rgb(%i,%i,%i)"%colordict[doccats[key]]})
-    with open(filepath,"w") as f:
-        f.write(json.dumps(data_json,indent=2))
+        data_json.append({"id": key, "x": x_test[i], "y": y_test[i], "title": str(key) + " (%s) - TEST POINT" % catdesc[
+                         doccats[key]], "description": docdict[key], "color": "rgb(%i,%i,%i)" % colordict[doccats[key]]})
+    with open(filepath, "w") as f:
+        f.write(json.dumps(data_json, indent=2))
+
 
 def basic_viz(doc_ids, doccats, x, y, catdesc={}, title='', doc_ids_test=[], x_test=[], y_test=[]):
     """
@@ -75,25 +81,28 @@ def basic_viz(doc_ids, doccats, x, y, catdesc={}, title='', doc_ids_test=[], x_t
     # pretty preprocessing
     categories = set(invert_dict0(doccats).keys())
     if not catdesc:
-        catdesc = {cat:cat for cat in categories}    
+        catdesc = {cat: cat for cat in categories}
     colorlist = get_colors(len(categories))
-    colordict = {cat:(colorlist[i][0],colorlist[i][1],colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
+    colordict = {cat: (colorlist[i][0], colorlist[i][1], colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
     # plot scatter plot
     plt.figure()
     for j, cat in enumerate(sorted(categories)):
         # get docids that belong to the current category
         didx_temp = [i for i, did in enumerate(doc_ids) if cat == doccats[did]]
-        plt.plot(x[didx_temp], y[didx_temp], 'o', label=catdesc[cat], color=colordict[cat], alpha=0.6, markeredgewidth=0)
+        plt.plot(x[didx_temp], y[didx_temp], 'o', label=catdesc[cat],
+                 color=colordict[cat], alpha=0.6, markeredgewidth=0)
         # possibly do the same for test points
         if doc_ids_test:
             didx_temp = [i for i, did in enumerate(doc_ids_test) if cat == doccats[did]]
-            plt.plot(x_test[didx_temp], y_test[didx_temp], 'o', label=catdesc[cat], color=colordict[cat], alpha=1., markeredgewidth=0)
-    plt.xticks([],[])
-    plt.yticks([],[])
-    #plt.axis('equal')
+            plt.plot(x_test[didx_temp], y_test[didx_temp], 'o', label=catdesc[
+                     cat], color=colordict[cat], alpha=1., markeredgewidth=0)
+    plt.xticks([], [])
+    plt.yticks([], [])
+    # plt.axis('equal')
     plt.title(title)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), numpoints=1)
-    #plt.tight_layout()
+    # plt.tight_layout()
+
 
 def json2plot(jsonpath, title='', baseline=True):
     data_json = json.load(open(jsonpath))
@@ -101,25 +110,25 @@ def json2plot(jsonpath, title='', baseline=True):
     x = np.array([d["x"] for d in data_json])
     y = np.array([d["y"] for d in data_json])
     if baseline:
-        catdesc = { "moviereviews neg": 1,
-                    "moviereviews pos": 2,
-                    "ohsumed C04": 3,
-                    "ohsumed C10": 4,
-                    "ohsumed C14": 5,
-                    "ohsumed C23": 6,
-                    "reuters coffee": 7,
-                    "reuters crude": 8,
-                    "reuters gold": 9,
-                    "reuters grain": 10,
-                    "reuters interest": 11,
-                    "reuters money-supply": 12,
-                    "reuters sugar": 13,
-                    "reuters trade": 14,
-                    "pmcpar abs-int-dis": 15,
-                    "pmcpar methods": 16,
-                    "pmcpar results": 17 }       
-        doccats = {d["id"]:catdesc[d["title"].split("(")[-1][:-1]] for d in data_json}
-        basic_viz(doc_ids, doccats, x, y, {v:k for k, v in catdesc.iteritems()}, title)
+        catdesc = {"moviereviews neg": 1,
+                   "moviereviews pos": 2,
+                   "ohsumed C04": 3,
+                   "ohsumed C10": 4,
+                   "ohsumed C14": 5,
+                   "ohsumed C23": 6,
+                   "reuters coffee": 7,
+                   "reuters crude": 8,
+                   "reuters gold": 9,
+                   "reuters grain": 10,
+                   "reuters interest": 11,
+                   "reuters money-supply": 12,
+                   "reuters sugar": 13,
+                   "reuters trade": 14,
+                   "pmcpar abs-int-dis": 15,
+                   "pmcpar methods": 16,
+                   "pmcpar results": 17}
+        doccats = {d["id"]: catdesc[d["title"].split("(")[-1][:-1]] for d in data_json}
+        basic_viz(doc_ids, doccats, x, y, {v: k for k, v in catdesc.iteritems()}, title)
     else:
-        doccats = {d["id"]:d["title"].split("(")[-1][:-1] for d in data_json}
+        doccats = {d["id"]: d["title"].split("(")[-1][:-1] for d in data_json}
         basic_viz(doc_ids, doccats, x, y, {}, title)

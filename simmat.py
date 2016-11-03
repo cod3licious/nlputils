@@ -1,6 +1,7 @@
 import numpy as np
-from nlputils.preprocessing import features2mat
+from nlputils.features import features2mat
 from nlputils.simcoefs import compute_sim
+
 
 def dist2kernel(D, perp=30, tol=10e-4, verbose=False):
     """
@@ -15,7 +16,7 @@ def dist2kernel(D, perp=30, tol=10e-4, verbose=False):
     logPerp = np.log2(perp)
     # initialize sigmas
     sigmas = np.ones(D.shape[0])
-    sigmas_max = 250*np.ones(D.shape[0]) # unrealistically high value
+    sigmas_max = 250 * np.ones(D.shape[0])  # unrealistically high value
     sigmas_min = np.zeros(D.shape[0])
     for it in range(50):
         # compute P using the individual sigmas
@@ -31,19 +32,20 @@ def dist2kernel(D, perp=30, tol=10e-4, verbose=False):
         if err <= tol:
             break
         # update sigmas
-        sigmas_min[hdiffs>=0] = sigmas[hdiffs>=0]
-        sigmas_max[hdiffs<=0] = sigmas[hdiffs<=0]
-        sigmas[hdiffs>0] = 0.5*(sigmas[hdiffs>0] + sigmas_max[hdiffs>0])
-        sigmas[hdiffs<0] = 0.5*(sigmas[hdiffs<0] + sigmas_min[hdiffs<0])
+        sigmas_min[hdiffs >= 0] = sigmas[hdiffs >= 0]
+        sigmas_max[hdiffs <= 0] = sigmas[hdiffs <= 0]
+        sigmas[hdiffs > 0] = 0.5 * (sigmas[hdiffs > 0] + sigmas_max[hdiffs > 0])
+        sigmas[hdiffs < 0] = 0.5 * (sigmas[hdiffs < 0] + sigmas_min[hdiffs < 0])
     # sanity check
     if verbose:
-        print(np.histogram(sigmas,20))
+        print(np.histogram(sigmas, 20))
     # compute P for real
     P = np.exp(-D * sigmas)
     np.fill_diagonal(P, 0.)     # set diagonal to 0
     P /= np.sum(P, 0)           # normalize
     # and from the conditional probabilities, compute the joint probabilities
-    return (P + P.T)/(2.*D.shape[0])
+    return (P + P.T) / (2. * D.shape[0])
+
 
 def compute_K(docids, docfeats, sim='linear', normalize=False):
     """
@@ -75,23 +77,24 @@ def compute_K(docids, docfeats, sim='linear', normalize=False):
             S = np.minimum(S, 1)
             S = np.maximum(S, 0)
             if sim == 'angularsim':
-                S = 1.-2.*np.arccos(S)/np.pi
+                S = 1. - 2. * np.arccos(S) / np.pi
             else:
-                # distance 
-                S = 2.*np.arccos(S)/np.pi
+                # distance
+                S = 2. * np.arccos(S) / np.pi
     else:
         # compute general similarity matrix
         N = len(docids)
-        S = np.zeros((N,N))
+        S = np.zeros((N, N))
         for i, did in enumerate(docids):
-            for j in range(i+1):
-                similarity = compute_sim(docfeats[did],docfeats[docids[j]],sim)
-                S[i,j], S[j,i] = similarity, similarity
+            for j in range(i + 1):
+                similarity = compute_sim(docfeats[did], docfeats[docids[j]], sim)
+                S[i, j], S[j, i] = similarity, similarity
     if normalize:
         diag_elem = np.array([np.diag(S)])
-        norm = (np.tile(diag_elem,(N,1)) + np.tile(diag_elem.T,(1,N)))/2.
+        norm = (np.tile(diag_elem, (N, 1)) + np.tile(diag_elem.T, (1, N))) / 2.
         S /= norm
     return S
+
 
 def compute_K_map(train_ids, test_ids, docfeats, sim='linear', train_idx=[], normalize=False):
     """
@@ -120,21 +123,22 @@ def compute_K_map(train_ids, test_ids, docfeats, sim='linear', train_idx=[], nor
             K_map = np.minimum(K_map, 1)
             K_map = np.maximum(K_map, 0)
             if sim == 'angularsim':
-                K_map = 1.-2.*np.arccos(K_map)/np.pi
+                K_map = 1. - 2. * np.arccos(K_map) / np.pi
             else:
-                # distance 
-                K_map = 2.*np.arccos(K_map)/np.pi
+                # distance
+                K_map = 2. * np.arccos(K_map) / np.pi
     else:
         # compute similarity of all test examples to all training examples
         n_tr = len(train_ids)
         n_ts = len(test_ids)
         if not len(train_idx):
             train_idx = range(n_tr)
-        K_map = np.array([[compute_sim(docfeats[did_ts],docfeats[train_ids[j]],sim) for j in train_idx] for did_ts in test_ids])
+        K_map = np.array([[compute_sim(docfeats[did_ts], docfeats[train_ids[j]], sim)
+                           for j in train_idx] for did_ts in test_ids])
     if normalize:
-        train_sim = np.array([[compute_sim(docfeats[did_tr],docfeats[did_tr],sim) for did_tr in train_ids]])
-        test_sim = np.array([[compute_sim(docfeats[did_ts],docfeats[did_ts],sim) for did_ts in test_ids]]).T
-        norm = (np.tile(train_sim,(n_ts,1)) + np.tile(test_sim,(1,n_tr)))/2.
+        train_sim = np.array([[compute_sim(docfeats[did_tr], docfeats[did_tr], sim) for did_tr in train_ids]])
+        test_sim = np.array([[compute_sim(docfeats[did_ts], docfeats[did_ts], sim) for did_ts in test_ids]]).T
+        norm = (np.tile(train_sim, (n_ts, 1)) + np.tile(test_sim, (1, n_tr))) / 2.
         K_map /= norm
     return K_map
 
@@ -142,7 +146,7 @@ def compute_K_map(train_ids, test_ids, docfeats, sim='linear', train_idx=[], nor
 def get_k_most_similar(K, row_ids, col_ids, did, k=10):
     """
     given the kernel matrix and corresponding docids, get the k most similar documents corresponding to the doc did
-    
+
     Input:
         K: kernel matrix or map with similarities (the higher the more similar)
         row_ids: list of ids in the order of the rows in K
@@ -158,6 +162,5 @@ def get_k_most_similar(K, row_ids, col_ids, did, k=10):
         print "did must have a designated row in K"
         return []
     # get k indexes for K
-    k_idx = np.flipud(np.argsort(K[dididx,:]))[:k+1]
-    return [(col_ids[i],K[dididx,i]) for i in k_idx if not col_ids[i]==did][:k]
-
+    k_idx = np.flipud(np.argsort(K[dididx, :]))[:k + 1]
+    return [(col_ids[i], K[dididx, i]) for i in k_idx if not col_ids[i] == did][:k]

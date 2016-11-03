@@ -3,31 +3,36 @@ import sys
 import re
 import numpy as np
 from nlputils.dict_utils import invert_dict0, invert_dict1
-from nlputils.preprocessing import preprocess_text, find_bigrams, replace_bigrams
+from nlputils.features import preprocess_text, find_bigrams, replace_bigrams
 
 
 def trending_fun_tpr(tpr, fpr):
     # to get the development of word occurrences
     return tpr
 
+
 def trending_fun_diff(tpr, fpr):
     # computes the trending score as the difference between tpr and fpr rate (not below 0 though)
-    return np.maximum(tpr-fpr, 0.)
+    return np.maximum(tpr - fpr, 0.)
+
 
 def trending_fun_tprmean(tpr, fpr):
     # computes the trending score as the mean between the tpr and the difference between tpr and fpr rate
-    return 0.5*(tpr + np.maximum(tpr-fpr, 0.))
+    return 0.5 * (tpr + np.maximum(tpr - fpr, 0.))
+
 
 def trending_fun_tprmult(tpr, fpr):
-    return tpr*np.maximum(tpr-fpr, 0.)
+    return tpr * np.maximum(tpr - fpr, 0.)
+
 
 def trending_fun_quot(tpr, fpr):
-    #return 1./(1.+np.exp(-tpr/np.maximum(fpr,sys.float_info.epsilon)))
-    return (np.minimum(np.maximum(tpr/np.maximum(fpr, sys.float_info.epsilon), 1.), 4.)-1)/3.
+    # return 1./(1.+np.exp(-tpr/np.maximum(fpr,sys.float_info.epsilon)))
+    return (np.minimum(np.maximum(tpr / np.maximum(fpr, sys.float_info.epsilon), 1.), 4.) - 1) / 3.
+
 
 def trending_fun_quotdiff(tpr, fpr):
-    #return 1./(1.+np.exp(-tpr/np.maximum(fpr,sys.float_info.epsilon)))
-    return 0.5*(trending_fun_quot(tpr, fpr) + trending_fun_diff(tpr, fpr))
+    # return 1./(1.+np.exp(-tpr/np.maximum(fpr,sys.float_info.epsilon)))
+    return 0.5 * (trending_fun_quot(tpr, fpr) + trending_fun_diff(tpr, fpr))
 
 
 def get_trending_words(textdict, doccats, trending_fun=trending_fun_quotdiff, target_cats=[]):
@@ -61,7 +66,7 @@ def get_trending_words(textdict, doccats, trending_fun=trending_fun_quotdiff, ta
         tpc_words[word] = {}
         for cat in cats_dids:
             # out of all docs in this category, in how many did the word occur?
-            tpc_words[word][cat] = len(cats_dids[cat].intersection(word_dids[word]))/len(cats_dids[cat])
+            tpc_words[word][cat] = len(cats_dids[cat].intersection(word_dids[word])) / len(cats_dids[cat])
     # possibly we are only interested in a subset of all categories
     if not target_cats:
         target_cats = cats_dids.keys()
@@ -81,6 +86,7 @@ def get_trending_words(textdict, doccats, trending_fun=trending_fun_quotdiff, ta
                 trending_words[cat][word] = trending_fun(tpr, fpr)
     return trending_words
 
+
 def test_trending_computations(trending_fun=trending_fun_diff, fun_name='Rate difference'):
     """
     given a function to compute the "trending score" of a word given its true and false positive rate,
@@ -88,16 +94,16 @@ def test_trending_computations(trending_fun=trending_fun_diff, fun_name='Rate di
     """
     # make a grid of possible tpr and fpr combinations
     import matplotlib.pyplot as plt
-    x, y = np.linspace(0,1,101), np.linspace(1,0,101)
+    x, y = np.linspace(0, 1, 101), np.linspace(1, 0, 101)
     fpr, tpr = np.meshgrid(x, y)
-    score = trending_fun(tpr,fpr)
+    score = trending_fun(tpr, fpr)
     plt.figure()
     plt.imshow(score)
     plt.xlabel('FPR')
     plt.ylabel('TPR')
-    plt.xticks(np.linspace(0,101,11),np.linspace(0,1,11))
-    plt.yticks(np.linspace(0,101,11),np.linspace(1,0,11))
-    plt.title('Trending Score using %s'%fun_name)
+    plt.xticks(np.linspace(0, 101, 11), np.linspace(0, 1, 11))
+    plt.yticks(np.linspace(0, 101, 11), np.linspace(1, 0, 11))
+    plt.title('Trending Score using %s' % fun_name)
     plt.colorbar()
 
 

@@ -2,6 +2,7 @@ import numpy as np
 from scipy.sparse.linalg import eigsh
 from scipy.spatial.distance import pdist, squareform
 
+
 def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True):
     """
     TSNE_Sim Performs symmetric t-SNE on similarity matrix S
@@ -22,17 +23,17 @@ def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True):
     stop_lying_iter = 100                              # iteration at which lying about P-values is stopped
     max_iter = 1500                                    # maximum number of iterations
     epsilon = 500.                                     # initial learning rate
-    min_gain = .01                                     # minimum gain for delta-bar-delta   
+    min_gain = .01                                     # minimum gain for delta-bar-delta
     # initialize the solution
     if init == 'kpca' and no_dims == 2:
         # kPCA initialization
         x, y = proj2d(S, use_tsne=False)
         mappedX = np.zeros((n, no_dims))
-        mappedX[:,0] = x
-        mappedX[:,1] = y
+        mappedX[:, 0] = x
+        mappedX[:, 1] = y
     else:
         mappedX = .0001 * np.random.randn(n, no_dims)
-    y_incs  = np.zeros(mappedX.shape)
+    y_incs = np.zeros(mappedX.shape)
     gains = np.ones(mappedX.shape)
     last_cost = np.inf
     # Make sure S-vals are set properly
@@ -41,37 +42,38 @@ def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True):
     S /= np.sum(S)                                     # make sure S-values sum to one
     S = np.maximum(S, 1e-12)
     const = np.sum(S * np.log(S))                      # constant in KL divergence
-    S *= exageration                                   # lie about the S-vals to find better local minima 
+    S *= exageration                                   # lie about the S-vals to find better local minima
     # Run the iterations
-    for itr in range(max_iter):       
+    for itr in range(max_iter):
         # Compute joint probability that point i and j are neighbors
         # sum_mappedX = np.sum(np.square(mappedX), 1)
         # Student-t distribution
         # num = 1 / (1 + np.add(np.add(-2 * np.dot(mappedX, mappedX.T), sum_mappedX).T, sum_mappedX))
         num = 1 / (1 + squareform(pdist(mappedX, 'sqeuclidean')))
         np.fill_diagonal(num, 0.)                       # set diagonal to zero
-        Q = num/np.sum(num)                             # normalize to get probabilities
+        Q = num / np.sum(num)                             # normalize to get probabilities
         Q = np.maximum(Q, 1e-12)
         # Compute the gradients (faster implementation)
         L = (S - Q) * num
         # free some memory
         del num
-        y_grads = 4. * np.dot((np.diag(np.sum(L, 0)) - L), mappedX) 
+        y_grads = 4. * np.dot((np.diag(np.sum(L, 0)) - L), mappedX)
         # Update the solution (note that the y_grads are actually -y_grads)
-        gains = (gains + .2) * np.invert(np.sign(y_grads) == np.sign(y_incs)) + (gains * .8) * (np.sign(y_grads) == np.sign(y_incs))
+        gains = (gains + .2) * np.invert(np.sign(y_grads) == np.sign(y_incs)) + \
+            (gains * .8) * (np.sign(y_grads) == np.sign(y_incs))
         gains[gains < min_gain] = min_gain
         y_incs = momentum * y_incs - epsilon * (gains * y_grads)
         mappedX += y_incs
-        mappedX -= np.tile(np.mean(mappedX, 0),(n, 1))        
+        mappedX -= np.tile(np.mean(mappedX, 0), (n, 1))
         # Update the momentum if necessary
         if itr == mom_switch_iter:
             momentum = final_momentum
         if itr == stop_lying_iter:
-            S /= exageration        
+            S /= exageration
         # Print out progress
-        if not (itr+1)%25:
+        if not (itr + 1) % 25:
             if itr < stop_lying_iter:
-                cost = const - np.sum(S/exageration * np.log(Q))
+                cost = const - np.sum(S / exageration * np.log(Q))
             else:
                 cost = const - np.sum(S * np.log(Q))
                 if earlystop and itr > mom_switch_iter and cost >= last_cost - 0.000001:
@@ -79,8 +81,9 @@ def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True):
                 else:
                     last_cost = cost
             if verbose:
-                print('Iteration %i: error is %.5f'%(itr+1, cost))
+                print('Iteration %i: error is %.5f' % (itr + 1, cost))
     return mappedX
+
 
 def classical_scaling(K, nev=2, evcrit='LM'):
     """
@@ -93,27 +96,28 @@ def classical_scaling(K, nev=2, evcrit='LM'):
         mappedX: n x 2 matrix of mapped data 
     """
     n, m = K.shape
-    H = np.eye(n) - np.tile(1./n,(n,n))
-    B = np.dot(np.dot(H,K),H)
-    D, V = eigsh((B+B.T)/2.,k=nev,which=evcrit) # guard against spurious complex e-vals from roundoff
-    return np.dot(V.real,np.diag(np.sqrt(np.abs(D.real))))
+    H = np.eye(n) - np.tile(1. / n, (n, n))
+    B = np.dot(np.dot(H, K), H)
+    D, V = eigsh((B + B.T) / 2., k=nev, which=evcrit)  # guard against spurious complex e-vals from roundoff
+    return np.dot(V.real, np.diag(np.sqrt(np.abs(D.real))))
+
 
 def proj2d(K, use_tsne=True, evcrit='LM'):
     """
     wrapper function to project data to 2D 
     """
     if use_tsne:
-        print("performing tSNE: %i datapoints"%K.shape[0])
+        print("performing tSNE: %i datapoints" % K.shape[0])
         X = tsne_sim(K)
-        x = X[:,0]
-        y = X[:,1]
+        x = X[:, 0]
+        y = X[:, 1]
     else:
-        print("performing classical scaling: %i datapoints"%K.shape[0])
-        if evcrit=='LM' or evcrit=='SM':
+        print("performing classical scaling: %i datapoints" % K.shape[0])
+        if evcrit == 'LM' or evcrit == 'SM':
             X = classical_scaling(K, evcrit=evcrit)
-            x = X[:,0]
-            y = X[:,1]
-        elif evcrit=='LS':
+            x = X[:, 0]
+            y = X[:, 1]
+        elif evcrit == 'LS':
             x = classical_scaling(K, nev=1, evcrit='LM')
             y = classical_scaling(K, nev=1, evcrit='SM')
         else:

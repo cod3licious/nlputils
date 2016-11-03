@@ -15,6 +15,7 @@ def xval(Xlist, K=10):
         test = [x for i, x in enumerate(Xlist) if i % K == k]
         yield train, test
 
+
 def balanced_xval(Xdict, K=10, random_seed=None):
     """
     Input:

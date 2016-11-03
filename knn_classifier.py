@@ -2,6 +2,7 @@ from __future__ import division
 import numpy as np
 from nlputils.dict_utils import invert_dict1, invert_dict2, select_copy
 
+
 def knn(K_map, train_ids, test_ids, doccats, k=25, adapt=True, alpha=5, weight=True):
     """
     k nearest neighbors
@@ -31,31 +32,33 @@ def knn(K_map, train_ids, test_ids, doccats, k=25, adapt=True, alpha=5, weight=T
         # max number of samples in category
         cat_max = max([len(cat_docs[cat]) for cat in categories])
         # adaptive k is at least alpha and at most k or number of samples in category
-        k_cat = {cat: min(len(cat_docs[cat]),max(int(alpha),int(k*len(cat_docs[cat])/cat_max))) for cat in categories}
+        k_cat = {cat: min(len(cat_docs[cat]), max(int(alpha), int(k * len(cat_docs[cat]) / cat_max))) for cat in categories}
     else:
-        k_cat = {cat:k for cat in categories}
+        k_cat = {cat: k for cat in categories}
     # get index for k nearest neighbors
-    k_idx = np.fliplr(np.argsort(K_map))[:,:k]
-    train_ids_dict = {doc:i for i, doc in enumerate(train_ids)}
-    likely_cat = {did_ts:{} for did_ts in test_ids}
+    k_idx = np.fliplr(np.argsort(K_map))[:, :k]
+    train_ids_dict = {doc: i for i, doc in enumerate(train_ids)}
+    likely_cat = {did_ts: {} for did_ts in test_ids}
     for cat in categories:
         # get K_map index of all training documents that belong to the category
         cdoc_idx = set([train_ids_dict[doc] for doc in cat_docs[cat]])
         # compute the score for that category for every test example
         for i, did_ts in enumerate(test_ids):
-            # get overlap between category specific training examples and the (adapted) k nearest neighbors of the test example
-            tidx = sorted(set(cdoc_idx & set(k_idx[i,:k_cat[cat]])))
-            if tidx and np.sum(K_map[i,tidx]):
+            # get overlap between category specific training examples and the
+            # (adapted) k nearest neighbors of the test example
+            tidx = sorted(set(cdoc_idx & set(k_idx[i, :k_cat[cat]])))
+            if tidx and np.sum(K_map[i, tidx]):
                 # get score
                 if weight:
                     # sum of similarity of k nearest neighbors of category cat / sum of similarity of all knn
-                    likely_cat[did_ts][cat] = np.sum(K_map[i,tidx])/np.sum(K_map[i,k_idx[i,:k_cat[cat]]])
+                    likely_cat[did_ts][cat] = np.sum(K_map[i, tidx]) / np.sum(K_map[i, k_idx[i, :k_cat[cat]]])
                 else:
                     # number of nearest neighbors of category cat
-                    likely_cat[did_ts][cat] = float(len(tidx))/k_cat[cat]
+                    likely_cat[did_ts][cat] = float(len(tidx)) / k_cat[cat]
             else:
                 likely_cat[did_ts][cat] = 0.
     return likely_cat
+
 
 def get_labels(likely_cat, threshold='max'):
     """
@@ -75,9 +78,8 @@ def get_labels(likely_cat, threshold='max'):
     for tid in likely_cat:
         # either take the most likely category
         if threshold == 'max':
-            labels[tid] = [max(likely_cat[tid].keys(),key=likely_cat[tid].get)]
+            labels[tid] = [max(likely_cat[tid].keys(), key=likely_cat[tid].get)]
         # or all categories with a score above threshold
         else:
             labels[tid] = [cat for cat in likely_cat[tid] if likely_cat[tid][cat] >= threshold]
     return labels
-

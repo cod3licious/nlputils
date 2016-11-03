@@ -6,12 +6,13 @@ from scipy.sparse import csr_matrix, dok_matrix
 from unidecode import unidecode
 from nlputils.dict_utils import norm_dict, invert_dict1, invert_dict2, select_copy
 
+
 def preprocess_text(text, to_lower=True, norm_num=True):
     # clean the text: no fucked up characters, html, ...
     if not isinstance(text, unicode):
         text = text.decode("utf-8")
     text = unidecode(text)
-    text = re.sub(r"http(s)?://\S*", " ", text) # remove links (other html crap is assumed to be removed by bs)
+    text = re.sub(r"http(s)?://\S*", " ", text)  # remove links (other html crap is assumed to be removed by bs)
     if to_lower:
         text = text.lower()
     if norm_num:
@@ -20,6 +21,7 @@ def preprocess_text(text, to_lower=True, norm_num=True):
     text = re.sub(r"[^A-Za-z0-9-]+", " ", text)
     text = re.sub(r"\s+", " ", text)
     return text.strip()
+
 
 def get_bigram_scores(text_words, min_bgfreq=2.):
     """
@@ -47,16 +49,18 @@ def get_bigram_scores(text_words, min_bgfreq=2.):
                 unigram_freq[word] = 1.
             if i:
                 try:
-                    bigram_freq["%s %s"%(wordlist[i-1],word)] += 1.
+                    bigram_freq["%s %s" % (wordlist[i - 1], word)] += 1.
                 except:
-                    bigram_freq["%s %s"%(wordlist[i-1],word)] = 1.
+                    bigram_freq["%s %s" % (wordlist[i - 1], word)] = 1.
     # compute bigram scores
     bigram_scores = {}
     for bigram in bigram_freq:
         # discount to ensure a word combination occurred a sufficient amount of times
-        if max(0.,bigram_freq[bigram]-min_bgfreq):
-            bigram_scores[bigram] = bigram_freq[bigram]/max(unigram_freq[bigram.split()[0]],unigram_freq[bigram.split()[1]])
+        if max(0., bigram_freq[bigram] - min_bgfreq):
+            bigram_scores[bigram] = bigram_freq[bigram] / \
+                max(unigram_freq[bigram.split()[0]], unigram_freq[bigram.split()[1]])
     return bigram_scores
+
 
 def find_bigrams(textdict, threshold=0.1):
     """
@@ -72,6 +76,7 @@ def find_bigrams(textdict, threshold=0.1):
     text_words = [textdict[did].split() for did in docids]
     bigram_scores = get_bigram_scores(text_words)
     return [bigram for bigram in bigram_scores if bigram_scores[bigram] > threshold]
+
 
 def replace_bigrams(textdict, bigrams):
     """
@@ -92,6 +97,7 @@ def replace_bigrams(textdict, bigrams):
         textdict[did] = text
     return textdict
 
+
 def compute_idf(docfeats):
     """
     Inputs:
@@ -104,7 +110,7 @@ def compute_idf(docfeats):
     # invert the dictionary to be term:{doc_id:count}
     termdocs = invert_dict2(docfeats)
     # compute idf for every term
-    return norm_dict({term:log(N/len(termdocs[term])) for term in termdocs})
+    return norm_dict({term: log(N / len(termdocs[term])) for term in termdocs})
 
 
 class FeatureTransform(object):
@@ -127,7 +133,7 @@ class FeatureTransform(object):
         - weight: if idf term weights should be applied
         - renorm: how the features with applied weights should be renormalized
     """
-    
+
     def __init__(self, norm='max', weight=True, renorm='length', identify_bigrams=True,
                  to_lower=True, norm_num=True, bg_threshold=0.1):
         self.norm = norm
@@ -139,7 +145,7 @@ class FeatureTransform(object):
         self.bg_threshold = bg_threshold
         self.Dw = {}
         self.bigrams = []
-        
+
     def texts2features(self, textdict, fit_ids=[]):
         """
         preprocess texts, count how often each word occurs, weight counts, normalize
@@ -157,7 +163,7 @@ class FeatureTransform(object):
         if not fit_ids:
             fit_ids = set(textdict.keys())
         # pre-process texts
-        textdict_pp = {did:preprocess_text(textdict[did], self.to_lower, self.norm_num) for did in docids}
+        textdict_pp = {did: preprocess_text(textdict[did], self.to_lower, self.norm_num) for did in docids}
         # possibly find bigrams
         if self.identify_bigrams:
             if not self.bigrams:
@@ -176,14 +182,15 @@ class FeatureTransform(object):
             if not self.Dw:
                 self.Dw = compute_idf(select_copy(docfeats, fit_ids))
             for did in docids:
-                # if the word was not in Dw (= not in the training set), delete it (otherwise it can mess with renormalization)
-                docfeats[did] = {term:docfeats[did][term]*self.Dw[term] for term in docfeats[did] if term in self.Dw}
+                # if the word was not in Dw (= not in the training set), delete it
+                # (otherwise it can mess with renormalization)
+                docfeats[did] = {term: docfeats[did][term] * self.Dw[term] for term in docfeats[did] if term in self.Dw}
         if self.renorm:
             for did in docids:
                 docfeats[did] = norm_dict(docfeats[did], norm=self.renorm)
         return docfeats
 
-        
+
 def features2mat(docfeats, docids, featurenames=[]):
     """
     Transform a dictionary with features into a sparse matrix (e.g. for sklearn algorithms)
@@ -203,13 +210,13 @@ def features2mat(docfeats, docids, featurenames=[]):
         features_test, featurenames = make_featmat(docfeats, testids, featurenames)
     """
     if not featurenames:
-        featurenames = sorted(invert_dict1(select_copy(docfeats,docids)).keys())
-    fnamedict = {feat:i for i, feat in enumerate(featurenames)}
-    featmat = dok_matrix((len(docids),len(featurenames)), dtype=float)
+        featurenames = sorted(invert_dict1(select_copy(docfeats, docids)).keys())
+    fnamedict = {feat: i for i, feat in enumerate(featurenames)}
+    featmat = dok_matrix((len(docids), len(featurenames)), dtype=float)
     for i, did in enumerate(docids):
         for word in docfeats[did]:
             try:
-                featmat[i,fnamedict[word]] = docfeats[did][word]
+                featmat[i, fnamedict[word]] = docfeats[did][word]
             except KeyError:
                 pass
     featmat = csr_matrix(featmat)
