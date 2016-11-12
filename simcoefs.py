@@ -1,8 +1,8 @@
 from __future__ import division
 from collections import defaultdict
+from sys import float_info as fi
 from math import sqrt, log
 import numpy as np
-from sys import float_info as fi
 
 
 def _polynomial_sim(x, y, p=2):
@@ -188,13 +188,13 @@ def compute_sim(x, y, sim='linear'):
     """
     compute the similarity between x and y
     Input:
-        x, y: dicts representing 2 documents (all normalization, weighting, etc has to be done before!)
-        sim: the kind of similarity to be computed:
-                - kernels: ['linear', 'polynomial', 'sigmoidal', 'histint', 'gaussian']
-                - (neg) distance: ['manhattan', 'sqeucl', 'minkowski', 'canberra', 'chisq', 'chebyshev', 'hellinger', 'jenshan']
-                - similarity coef: ['simpson', 'braun', 'kulczynski', 'jaccard', 'dice', 'otsuka', 'sokal']
+        - x, y: dicts representing 2 documents (all normalization, weighting, etc has to be done before!)
+        - sim: the kind of similarity to be computed:
+                -- kernels: ['linear', 'polynomial', 'sigmoidal', 'histint', 'gaussian']
+                -- (neg) distance: ['manhattan', 'sqeucl', 'minkowski', 'canberra', 'chisq', 'chebyshev', 'hellinger', 'jenshan']
+                -- similarity coef: ['simpson', 'braun', 'kulczynski', 'jaccard', 'dice', 'otsuka', 'sokal']
     Returns:
-        a single number representing the similarity between x and y
+        - a single number representing the similarity between x and y
     """
     if sim == 'linear':
         return _polynomial_sim(x, y, 1)

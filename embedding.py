@@ -8,7 +8,7 @@ def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True):
     TSNE_Sim Performs symmetric t-SNE on similarity matrix S
        mappedX = tsne_sim(S, no_dims)
 
-     The function performs symmetric t-SNE on pairwise similarity matrix S 
+     The function performs symmetric t-SNE on pairwise similarity matrix S
      to create a low-dimensional map of no_dims dimensions (default = 2).
      The matrix S is assumed to be symmetric, sum up to 1, and have zeros
      on the diagonal.
@@ -89,11 +89,11 @@ def classical_scaling(K, nev=2, evcrit='LM'):
     """
     compute 2 eigenvalues and -vectors of a similarity matrix
     Input:
-        K: a symmetric nxn similarity matrix (for dissimilarity matrices, first multiply by -1/2)
-        nev: how many eigenvalues should be computed
-        evcrit: how eigenvalues should be selected ('LM' for largest real part, 'SM' for smallest real part)
+        - K: a symmetric nxn similarity matrix (for dissimilarity matrices, first multiply by -1/2)
+        - nev: how many eigenvalues should be computed
+        - evcrit: how eigenvalues should be selected ('LM' for largest real part, 'SM' for smallest real part)
     Return:
-        mappedX: n x 2 matrix of mapped data 
+        - mappedX: n x 2 matrix of mapped data
     """
     n, m = K.shape
     H = np.eye(n) - np.tile(1. / n, (n, n))
@@ -104,7 +104,7 @@ def classical_scaling(K, nev=2, evcrit='LM'):
 
 def proj2d(K, use_tsne=True, evcrit='LM'):
     """
-    wrapper function to project data to 2D 
+    wrapper function to project data to 2D
     """
     if use_tsne:
         print("performing tSNE: %i datapoints" % K.shape[0])

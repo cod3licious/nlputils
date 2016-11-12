@@ -2,7 +2,7 @@ import colorsys
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from nlputils.dict_utils import invert_dict0
+from dict_utils import invert_dict0
 
 
 def get_colors(N=100):
@@ -40,13 +40,13 @@ def prepare_viz(doc_ids, docdict, doccats, x, y, catdesc={}, filepath='docs.json
     where each dict decodes 1 doc with "id" (doc_id), "x" and "y" (2dim coordinates derived from the kernel matrix
     using classical scaling), "title" (category/ies), "description" (whatever is in docdict at doc_id), "color" (for cat)
     Input:
-        doc_ids: list with keys for docdict and doccats
-        docdict: dict with docid:'description'
-        doccats: dict with docid: cat
-        x, y: 2d coordinates for all data points in the order of doc_ids (use x, y = proj2d(K, use_tsne, evcrit))
-        catdesc: category descriptions
-        filepath: where the json file will be saved
-        doc_ids_test, x_test, y_test: optional, same as before but for test points
+        - doc_ids: list with keys for docdict and doccats
+        - docdict: dict with docid:'description'
+        - doccats: dict with docid: cat
+        - x, y: 2d coordinates for all data points in the order of doc_ids (use x, y = proj2d(K, use_tsne, evcrit))
+        - catdesc: category descriptions
+        - filepath: where the json file will be saved
+        - doc_ids_test, x_test, y_test: optional, same as before but for test points
     """
     # pretty preprocessing
     categories = set(invert_dict0(doccats).keys())
@@ -72,11 +72,11 @@ def basic_viz(doc_ids, doccats, x, y, catdesc={}, title='', doc_ids_test=[], x_t
     """
     plot a scatter plot of the data in 2d
     Input:
-        doc_ids: list with keys for docdict and doccats
-        doccats: dict with docid: cat
-        x, y: 2d coordinates for all data points in the order of doc_ids (use x, y = proj2d(K, use_tsne, evcrit))
-        catdesc: category descriptions (for legend)
-        doc_ids_test, x_test, y_test: optional, same as before but for test points (will get a higher alpha)
+        - doc_ids: list with keys for docdict and doccats
+        - doccats: dict with docid: cat
+        - x, y: 2d coordinates for all data points in the order of doc_ids (use x, y = proj2d(K, use_tsne, evcrit))
+        - catdesc: category descriptions (for legend)
+        - doc_ids_test, x_test, y_test: optional, same as before but for test points (will get a higher alpha)
     """
     # pretty preprocessing
     categories = set(invert_dict0(doccats).keys())
@@ -104,7 +104,7 @@ def basic_viz(doc_ids, doccats, x, y, catdesc={}, title='', doc_ids_test=[], x_t
     # plt.tight_layout()
 
 
-def json2plot(jsonpath, title='', baseline=True):
+def json2plot(jsonpath, title='', baseline=False):
     data_json = json.load(open(jsonpath))
     doc_ids = [d["id"] for d in data_json]
     x = np.array([d["x"] for d in data_json])

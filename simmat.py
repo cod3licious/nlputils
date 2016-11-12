@@ -1,11 +1,11 @@
 import numpy as np
-from nlputils.features import features2mat
-from nlputils.simcoefs import compute_sim
+from features import features2mat
+from simcoefs import compute_sim
 
 
 def dist2kernel(D, perp=30, tol=10e-4, verbose=False):
     """
-    Given a distance matrix, select an appropriate sigma for every datapoint such that the perplexity of 
+    Given a distance matrix, select an appropriate sigma for every datapoint such that the perplexity of
     the resulting distribution is equal to perp (see tsne paper)
     Input:
         - D: NxN matrix with distances for all N points to each other
@@ -50,13 +50,13 @@ def dist2kernel(D, perp=30, tol=10e-4, verbose=False):
 def compute_K(docids, docfeats, sim='linear', normalize=False):
     """
     Imput:
-        docids: list of document ids (keys of docfeats)
-        docfeats: dict with doc_id:{feat:count}
-        sim: type of similarity
-        normalize: if the matrix should be normalized to have 1 on the diagonals and 1 <= s <= 0 on off diagonal
-                   by dividing k(x,y) by the mean of k(x,x) and k(y,y)
+        - docids: list of document ids (keys of docfeats)
+        - docfeats: dict with doc_id:{feat:count}
+        - sim: type of similarity
+        - normalize: if the matrix should be normalized to have 1 on the diagonals and 1 <= s <= 0 on off diagonal
+                     by dividing k(x,y) by the mean of k(x,x) and k(y,y)
     Returns:
-        symmetric similarity matrix of size len(docids)xlen(docids)
+        - symmetric similarity matrix of size len(docids)xlen(docids)
     """
     # if linear similarity or variant thereof, we're quicker with a dot product
     if sim in ('linear', 'cosine', 'angularsim', 'angulardist'):
@@ -99,12 +99,12 @@ def compute_K(docids, docfeats, sim='linear', normalize=False):
 def compute_K_map(train_ids, test_ids, docfeats, sim='linear', train_idx=[], normalize=False):
     """
     Imput:
-        train_ids, test_ids: list of document ids (keys of docfeats)
-        docfeats: dict with doc_id:feat
-        sim: type of similarity
-        train_idx: list of indexes for train_ids, e.g. for svms we don't need all training examples
+        - train_ids, test_ids: list of document ids (keys of docfeats)
+        - docfeats: dict with doc_id:feat
+        - sim: type of similarity
+        - train_idx: list of indexes for train_ids, e.g. for svms we don't need all training examples
     Returns:
-        kernel map of size len(test_ids)xlen(train_ids) with similarities of the test to the training docs
+        - kernel map of size len(test_ids)xlen(train_ids) with similarities of the test to the training docs
     """
     # if linear similarity or variant thereof, we're quicker with a dot product
     if sim in ('linear', 'cosine', 'angularsim', 'angulardist'):
@@ -148,13 +148,13 @@ def get_k_most_similar(K, row_ids, col_ids, did, k=10):
     given the kernel matrix and corresponding docids, get the k most similar documents corresponding to the doc did
 
     Input:
-        K: kernel matrix or map with similarities (the higher the more similar)
-        row_ids: list of ids in the order of the rows in K
-        col_ids: list of ids in the order of the cols in K (same as row_ids in the case of the kernel matrix, not map)
-        did: a single docids corresponding to one row in K and to which similar documents should be found
-        k: how many similar documents should be returned
+        - K: kernel matrix or map with similarities (the higher the more similar)
+        - row_ids: list of ids in the order of the rows in K
+        - col_ids: list of ids in the order of the cols in K (same as row_ids in the case of the kernel matrix, not map)
+        - did: a single docids corresponding to one row in K and to which similar documents should be found
+        - k: how many similar documents should be returned
     Returns:
-        simdocids: [(docid, simscore)] a list of k docids and their respective similarity to the target did
+        - simdocids: [(docid, simscore)] a list of k docids and their respective similarity to the target did
     """
     try:
         dididx = row_ids.index(did)

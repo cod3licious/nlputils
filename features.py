@@ -4,7 +4,7 @@ from math import log
 from collections import Counter
 from scipy.sparse import csr_matrix, dok_matrix
 from unidecode import unidecode
-from nlputils.dict_utils import norm_dict, invert_dict1, invert_dict2, select_copy
+from dict_utils import norm_dict, invert_dict1, invert_dict2, select_copy
 
 
 def preprocess_text(text, to_lower=True, norm_num=True):
@@ -26,7 +26,7 @@ def preprocess_text(text, to_lower=True, norm_num=True):
 def get_bigram_scores(text_words, min_bgfreq=2.):
     """
     compute scores for identifying bigrams in a collection of texts
-    compute unigram and bigram frequencies (of words) and give a score for every bigram. 
+    compute unigram and bigram frequencies (of words) and give a score for every bigram.
     depending on this score (e.g. if higher than a threshold), bigram phrases can be identified
     in the raw texts before splitting them into words
     --> once the lists of words in the text_words are replaced by appropriate bigrams, the whole thing could be repeated
@@ -128,7 +128,7 @@ class FeatureTransform(object):
         newdocfeats = ft.texts2features(newtextdict)
 
     Attributes:
-        - identify_bigrams: if bigrams should be found and replaced 
+        - identify_bigrams: if bigrams should be found and replaced
         - norm (binary, max, length, sum, None): how the term counts for each doc should be normalized
         - weight: if idf term weights should be applied
         - renorm: how the features with applied weights should be renormalized
@@ -196,7 +196,7 @@ def features2mat(docfeats, docids, featurenames=[]):
     Transform a dictionary with features into a sparse matrix (e.g. for sklearn algorithms)
     Input:
         - docfeats: a dictionary with {docid:{word:count}}
-        - docids: the subset of the docfeats (keys to the dict) that should be regarded, 
+        - docids: the subset of the docfeats (keys to the dict) that should be regarded,
                    defines rows of the feature matrix
         - featurenames: a list of words that define the columns of the feature matrix
                 --> when the docids are the training samples, this can be left empty

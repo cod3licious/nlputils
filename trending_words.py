@@ -2,8 +2,8 @@ from __future__ import division
 import sys
 import re
 import numpy as np
-from nlputils.dict_utils import invert_dict0, invert_dict1
-from nlputils.features import preprocess_text, find_bigrams, replace_bigrams
+from dict_utils import invert_dict0, invert_dict1
+from features import preprocess_text, find_bigrams, replace_bigrams
 
 
 def trending_fun_tpr(tpr, fpr):
@@ -37,7 +37,7 @@ def trending_fun_quotdiff(tpr, fpr):
 
 def get_trending_words(textdict, doccats, trending_fun=trending_fun_quotdiff, target_cats=[]):
     """
-    For every category, using the texts belonging to this category vs. max of all other texts, 
+    For every category, using the texts belonging to this category vs. max of all other texts,
     k 'distinguishing' words are found.
     Input:
         - textdict: a dict with {docid: text}
@@ -45,8 +45,8 @@ def get_trending_words(textdict, doccats, trending_fun=trending_fun_quotdiff, ta
         - trending_fun: which formula should be used when computing the score
         - target_cats: if not empty, only for some of the documents' categories trending words will be computed
     Returns:
-        - trending_words: a dict with {cat: {word: score}}, 
-          i.e. for every category the words and a score indicating 
+        - trending_words: a dict with {cat: {word: score}},
+          i.e. for every category the words and a score indicating
           how relevant the word is for this category (the higher the better)
           you could then do sorted(trending_words[cat], key=trending_words[cat].get, reverse=True)[:10]
           to get the 10 most distinguishing words for that category

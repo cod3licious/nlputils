@@ -1,23 +1,23 @@
 from __future__ import division
 import numpy as np
-from nlputils.dict_utils import invert_dict1, invert_dict2, select_copy
+from dict_utils import invert_dict1, invert_dict2, select_copy
 
 
 def knn(K_map, train_ids, test_ids, doccats, k=25, adapt=True, alpha=5, weight=True):
     """
     k nearest neighbors
     Input:
-        K_map: matrix of size len(test_ids)xlen(train_ids) with similarities of the test to the training docs
-        train_ids: list of document ids in the order used for K_map
-        test_ids: list of document ids that need to be assigned a category
-        doccats: true categories of training documents
-        k (default=25): how many nearest neighbors of 1 category should be considered (at most)
-        adapt (default=True): if the k value should be adapted (for skewed category distributions to avoid the bias of 
-               categories with many samples)
-        alpha (default=5): if adapt=True, how many samples should be considered at least
-        weight (default=True): if the nearest neighbors should be weighted by their similarity
+        - K_map: matrix of size len(test_ids)xlen(train_ids) with similarities of the test to the training docs
+        - train_ids: list of document ids in the order used for K_map
+        - test_ids: list of document ids that need to be assigned a category
+        - doccats: true categories of training documents
+        - k (default=25): how many nearest neighbors of 1 category should be considered (at most)
+        - adapt (default=True): if the k value should be adapted (for skewed category distributions to avoid the bias of 
+                categories with many samples)
+        - alpha (default=5): if adapt=True, how many samples should be considered at least
+        - weight (default=True): if the nearest neighbors should be weighted by their similarity
     Returns:
-        for every test document a likeliness score for every category: dict[tid] = dict[cat]:score (between 0 and 1)
+        - for every test document a likeliness score for every category: dict[tid] = dict[cat]:score (between 0 and 1)
     """
     categories = sorted(invert_dict1(doccats).keys())
     # select from doccats only training examples
@@ -63,13 +63,13 @@ def knn(K_map, train_ids, test_ids, doccats, k=25, adapt=True, alpha=5, weight=T
 def get_labels(likely_cat, threshold='max'):
     """
     Input:
-        likely_cat: the confidence scores for every category for every test doc as a dict (scores normalized to 1)
-        threshold: threshold for the likeliness score: selects as many categories as have a score equal to or above the
+        - likely_cat: the confidence scores for every category for every test doc as a dict (scores normalized to 1)
+        - threshold: threshold for the likeliness score: selects as many categories as have a score equal to or above the
                    threshold (between 0 and 1). If threshold is set to 'max', only the category with the highest score
                    is chosen (unless all categories have a score of 0)
     Returns:
-        labels: dict with doc:[cats] for each test doc where the list contains as many categories as have scores above threshold
-                --> the categories are chosen as the highest scoring categories in likely_cat
+        - labels: dict with doc:[cats] for each test doc where the list contains as many categories as have scores above threshold
+                 --> the categories are chosen as the highest scoring categories in likely_cat
     Note:
         if threshold='max' and all categories have score of 0, a random category is chosen,
         otherwise if threshold is a float and no category has a score above threshold, the list will be empty
