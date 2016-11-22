@@ -21,7 +21,7 @@ dependencies: numpy, scipy, unidecode, matplotlib
 
 additional dependencies: sklearn, matplotlib
 
-In the iPython Notebook `examples/examples.ipynb` are several examples on how to use the above described library components.
+In the iPython Notebook at [`examples/examples.ipynb`](https://github.com/cod3licious/nlputils/blob/master/examples/examples.ipynb) are several examples on how to use the above described library components.
 
 If you have any questions please don't hesitate to send me an [email](mailto:cod3licious@gmail.com) and of course if you should find any bugs or want to contribute other improvements, pull requests are very welcome!
 
