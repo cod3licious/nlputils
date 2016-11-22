@@ -128,6 +128,8 @@ class FeatureTransform(object):
         newdocfeats = ft.texts2features(newtextdict)
 
     Attributes:
+        - to_lower: whether the text should be lower cased in preprocessing
+        - norm_num: whether numbers should be normalized, e.g. both years '1989' and '2016' are transformed to '1111'
         - identify_bigrams: if bigrams should be found and replaced
         - norm (binary, max, length, sum, None): how the term counts for each doc should be normalized
         - weight: if idf term weights should be applied

@@ -10,9 +10,9 @@ def knn(K_map, train_ids, test_ids, doccats, k=25, adapt=True, alpha=5, weight=T
         - K_map: matrix of size len(test_ids)xlen(train_ids) with similarities of the test to the training docs
         - train_ids: list of document ids in the order used for K_map
         - test_ids: list of document ids that need to be assigned a category
-        - doccats: true categories of training documents
+        - doccats: true categories of training documents (as a list, since multiple categories per document are allowed)
         - k (default=25): how many nearest neighbors of 1 category should be considered (at most)
-        - adapt (default=True): if the k value should be adapted (for skewed category distributions to avoid the bias of 
+        - adapt (default=True): if the k value should be adapted (for skewed category distributions to avoid the bias of
                 categories with many samples)
         - alpha (default=5): if adapt=True, how many samples should be considered at least
         - weight (default=True): if the nearest neighbors should be weighted by their similarity

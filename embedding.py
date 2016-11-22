@@ -102,17 +102,19 @@ def classical_scaling(K, nev=2, evcrit='LM'):
     return np.dot(V.real, np.diag(np.sqrt(np.abs(D.real))))
 
 
-def proj2d(K, use_tsne=True, evcrit='LM'):
+def proj2d(K, use_tsne=True, evcrit='LM', verbose=True):
     """
     wrapper function to project data to 2D
     """
     if use_tsne:
-        print("performing tSNE: %i datapoints" % K.shape[0])
-        X = tsne_sim(K)
+        if verbose:
+            print("performing tSNE: %i datapoints" % K.shape[0])
+        X = tsne_sim(K, verbose=verbose)
         x = X[:, 0]
         y = X[:, 1]
     else:
-        print("performing classical scaling: %i datapoints" % K.shape[0])
+        if verbose:
+            print("performing classical scaling: %i datapoints" % K.shape[0])
         if evcrit == 'LM' or evcrit == 'SM':
             X = classical_scaling(K, evcrit=evcrit)
             x = X[:, 0]

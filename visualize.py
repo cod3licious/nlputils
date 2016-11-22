@@ -99,7 +99,7 @@ def basic_viz(doc_ids, doccats, x, y, catdesc={}, title='', doc_ids_test=[], x_t
     plt.xticks([], [])
     plt.yticks([], [])
     # plt.axis('equal')
-    plt.title(title)
+    plt.title(title, fontsize=16)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), numpoints=1)
     # plt.tight_layout()
 

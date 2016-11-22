@@ -17,7 +17,11 @@ dependencies: numpy, scipy, unidecode, matplotlib
 - `visualize.py`: helper functions to create a plot of the dataset based on the 2D embedding. This can create a json file which can be used with d3.js to create an interactive visualization of the data.
 - `trending_words.py`: based on various scoring functions, words in a corpus can be ranked to e.g. get the words which are representative for one class. This code is still under construction.
 
-An iPython Notebook with some examples of how to use all these functions is coming soon!
+### examples
+
+additional dependencies: sklearn, matplotlib
+
+In the iPython Notebook `examples/examples.ipynb` are several examples on how to use the above described library components.
 
 If you have any questions please don't hesitate to send me an [email](mailto:cod3licious@gmail.com) and of course if you should find any bugs or want to contribute other improvements, pull requests are very welcome!
 
