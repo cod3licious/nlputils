@@ -3,7 +3,7 @@ from scipy.sparse.linalg import eigsh
 from scipy.spatial.distance import pdist, squareform
 
 
-def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True):
+def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True, max_iter=1500):
     """
     TSNE_Sim Performs symmetric t-SNE on similarity matrix S
        mappedX = tsne_sim(S, no_dims)
@@ -21,7 +21,6 @@ def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True):
     mom_switch_iter = 250                              # iteration at which momentum is changed
     exageration = 8.                                   # by how much we lie about the P-values
     stop_lying_iter = 100                              # iteration at which lying about P-values is stopped
-    max_iter = 1500                                    # maximum number of iterations
     epsilon = 500.                                     # initial learning rate
     min_gain = .01                                     # minimum gain for delta-bar-delta
     # initialize the solution
@@ -102,14 +101,14 @@ def classical_scaling(K, nev=2, evcrit='LM'):
     return np.dot(V.real, np.diag(np.sqrt(np.abs(D.real))))
 
 
-def proj2d(K, use_tsne=True, evcrit='LM', verbose=True):
+def proj2d(K, use_tsne=True, evcrit='LM', max_iter=1500, verbose=True):
     """
     wrapper function to project data to 2D
     """
     if use_tsne:
         if verbose:
             print("performing tSNE: %i datapoints" % K.shape[0])
-        X = tsne_sim(K, verbose=verbose)
+        X = tsne_sim(K, max_iter=max_iter, verbose=verbose)
         x = X[:, 0]
         y = X[:, 1]
     else:
