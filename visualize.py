@@ -49,9 +49,11 @@ def prepare_viz(doc_ids, docdict, doccats, x, y, catdesc={}, filepath='docs.json
         - doc_ids_test, x_test, y_test: optional, same as before but for test points
     """
     # pretty preprocessing
-    categories = set(invert_dict0(doccats).keys())
     if not catdesc:
+        categories = set(invert_dict0(doccats).keys())
         catdesc = {cat: cat for cat in categories}
+    else:
+        categories = catdesc.keys()
     colorlist = get_colors(len(categories))
     colordict = {cat: (255 * colorlist[i][0], 255 * colorlist[i][1], 255 * colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
     # save as json
@@ -79,9 +81,11 @@ def basic_viz(doc_ids, doccats, x, y, catdesc={}, title='', doc_ids_test=[], x_t
         - doc_ids_test, x_test, y_test: optional, same as before but for test points (will get a higher alpha)
     """
     # pretty preprocessing
-    categories = set(invert_dict0(doccats).keys())
     if not catdesc:
+        categories = set(invert_dict0(doccats).keys())
         catdesc = {cat: cat for cat in categories}
+    else:
+        categories = catdesc.keys()
     colorlist = get_colors(len(categories))
     colordict = {cat: (colorlist[i][0], colorlist[i][1], colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
     # plot scatter plot
