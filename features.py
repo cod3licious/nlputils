@@ -1,10 +1,15 @@
-from __future__ import division
+from __future__ import division, unicode_literals
 import re
 from math import log
 from collections import Counter
 from scipy.sparse import csr_matrix, dok_matrix
 from unidecode import unidecode
 from dict_utils import norm_dict, invert_dict1, invert_dict2, select_copy
+
+
+def norm_whitespace(text):
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
 
 def preprocess_text(text, to_lower=True, norm_num=True):
@@ -162,7 +167,7 @@ class FeatureTransform(object):
             - docfeats: a dict with {docid: {term: (normalized/weighted) count}}
         """
         docids = set(textdict.keys())
-        if not fit_ids:
+        if not len(fit_ids):
             fit_ids = set(textdict.keys())
         # pre-process texts
         textdict_pp = {did: preprocess_text(textdict[did], self.to_lower, self.norm_num) for did in docids}

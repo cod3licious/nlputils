@@ -102,6 +102,8 @@ def basic_viz(doc_ids, doccats, x, y, catdesc={}, title='', doc_ids_test=[], x_t
                      cat], color=colordict[cat], alpha=1., markeredgewidth=0)
     plt.xticks([], [])
     plt.yticks([], [])
+    plt.xlim([x.min(), x.max()])
+    plt.ylim([y.min(), y.max()])
     # plt.axis('equal')
     plt.title(title, fontsize=16)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), numpoints=1)
