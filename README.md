@@ -15,7 +15,6 @@ dependencies: numpy, scipy, unidecode, matplotlib
 - `knn_classifier.py`: based on a similarity matrix, perform k-nearest-neighbors classification.
 - `embedding.py`: based on a similarity matrix, project data points to 2D with classical scaling or t-SNE.
 - `visualize.py`: helper functions to create a plot of the dataset based on the 2D embedding. This can create a json file which can be used with d3.js to create an interactive visualization of the data.
-- `trending_words.py`: based on various scoring functions, words in a corpus can be ranked to e.g. get the words which are representative for one class. This code is still under construction.
 
 ### examples
 
