@@ -10,8 +10,9 @@ The code is intended for research purposes. It was programmed for Python 2.7 but
 
 installation
 ------------
-either download the code here and include the folder in your `$PYTHONPATH` or install via pip:
-`$ pip install nlputils`
+either download the code here and include the folder in your ``$PYTHONPATH`` or install via pip:
+
+    ``$ pip install nlputils``
 
 nlputils library components
 ------------------
