@@ -8,6 +8,7 @@
 *.db
 examples/
 dist/
+build/
 nlputils.egg-info/
 MANIFEST.in
 setup.py

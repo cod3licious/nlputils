@@ -6,7 +6,12 @@ Mainly, text documents can be transformed into (sparse, dictionary based) tf-idf
 
 The individual library components are largely independent of another (besides most of them using functions from ``dict_utils.py``), which means you might also find only parts of this library interesting, e.g. ``embedding.py``, which contains a concise python implementation of t-SNE, which can be used to embed data points in 2D based on any kind of similarity matrix, not necessarily created with the scripts from this library.
 
-The code is intended for research purposes. It was programmed for Python 2.7 but should theoretically also run on newer Python 3 versions, no guarantees on this though (open an issue if you find a bug, please!).
+The code is intended for research purposes. It was programmed for Python 2.7 but should theoretically also run on newer Python 3 versions - no guarantees on this though (open an issue if you find a bug, please)!
+
+installation
+------------
+either download the code here and include the folder in your `$PYTHONPATH` or install via pip:
+`$ pip install nlputils`
 
 library components
 ------------------
