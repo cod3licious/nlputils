@@ -15,7 +15,7 @@ either download the code here and include the folder in your ``$PYTHONPATH`` or 
     ``$ pip install nlputils``
 
 nlputils library components
-------------------
+---------------------------
 
 dependencies: numpy, scipy, unidecode, matplotlib
 
