@@ -1,4 +1,5 @@
 from __future__ import division
+from builtins import range
 import numpy as np
 
 
@@ -10,7 +11,7 @@ def xval(Xlist, K=10):
     Generator yields:
         - training and test sets with ids
     """
-    for k in xrange(K):
+    for k in range(K):
         train = [x for i, x in enumerate(Xlist) if i % K != k]
         test = [x for i, x in enumerate(Xlist) if i % K == k]
         yield train, test
@@ -30,7 +31,7 @@ def balanced_xval(Xdict, K=10, random_seed=None):
     Xlist = []
     for cat in Xdict:
         Xlist.extend(list(np.random.permutation(sorted(Xdict[cat]))))
-    for k in xrange(K):
+    for k in range(K):
         train = [x for i, x in enumerate(Xlist) if i % K != k]
         test = [x for i, x in enumerate(Xlist) if i % K == k]
         yield train, test

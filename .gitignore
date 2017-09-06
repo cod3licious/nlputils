@@ -3,6 +3,11 @@
 *.sw[p|o]
 *.py[c|o]
 *.py~
+*.py.bak
 *.csv
 *.db
 examples/
+dist/
+nlputils.egg-info/
+MANIFEST.in
+setup.py

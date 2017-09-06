@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import numpy as np
 from copy import deepcopy
 
@@ -9,7 +10,7 @@ def invert_dict0(adict):
     e.g. dict[doc] = label --> dict[label] = [docs]
     """
     inv_dict = {}
-    [inv_dict.setdefault(v, []).append(k) for k, v in adict.iteritems()]
+    [inv_dict.setdefault(v, []).append(k) for k, v in adict.items()]
     return inv_dict
 
 
@@ -19,7 +20,7 @@ def invert_dict1(adict):
     e.g. dict[doc] = [terms] --> dict[term] = [docs]
     """
     inv_dict = {}
-    [inv_dict.setdefault(v, []).append(k) for k, vlist in adict.iteritems() for v in vlist]
+    [inv_dict.setdefault(v, []).append(k) for k, vlist in adict.items() for v in vlist]
     return inv_dict
 
 
@@ -29,8 +30,8 @@ def invert_dict2(adict):
     e.g. dict[doc] = dict[term]:count --> dict[term] = dict[doc]:count
     """
     inv_dict = {}
-    [inv_dict.setdefault(key2, {}).update({key: v}) for key, dict2 in adict.iteritems()
-     for key2, v in dict2.iteritems()]
+    [inv_dict.setdefault(key2, {}).update({key: v}) for key, dict2 in adict.items()
+     for key2, v in dict2.items()]
     return inv_dict
 
 
@@ -76,15 +77,15 @@ def norm_dict(somedict, norm='max', n_all=0):
     elif norm == 'sum':
         N = float(sum(somedict.values()))
     elif norm == 'max':
-        N = float(max(np.abs(somedict.values())))
+        N = float(max(np.abs(list(somedict.values()))))
     elif norm == 'length':
-        N = np.linalg.norm(somedict.values())
+        N = np.linalg.norm(list(somedict.values()))
     elif norm == 'mean':
-        N = np.mean(somedict.values() + [0.] * (n_all - len(somedict)))
+        N = np.mean(list(somedict.values()) + [0.] * (n_all - len(somedict)))
     elif norm == 'std':
-        N = np.std(somedict.values() + [0.] * (n_all - len(somedict)))
+        N = np.std(list(somedict.values()) + [0.] * (n_all - len(somedict)))
     else:
-        print "ERROR: norm not known!!"
+        print("ERROR: norm not known!!")
         return somedict
     if N:
         return {s: somedict[s] / N for s in somedict}
@@ -102,4 +103,4 @@ def combine_dicts(a, b, op=max):
             dicts it is returned as it was, otherwise the values corresponding to a key from both
             dicts are combined according to op (e.g. add values together or get max of all values)
     """
-    return dict(a.items() + b.items() + [(k, op([a[k], b[k]])) for k in set(b) & set(a)])
+    return dict(list(a.items()) + list(b.items()) + [(k, op([a[k], b[k]])) for k in set(b) & set(a)])

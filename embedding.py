@@ -1,3 +1,6 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import range
 import numpy as np
 from scipy.sparse.linalg import eigsh
 from scipy.spatial.distance import pdist, squareform

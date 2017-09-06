@@ -1,10 +1,12 @@
 from __future__ import division, unicode_literals
+from __future__ import absolute_import
+from builtins import object
 import re
 from math import log
 from collections import Counter
 from scipy.sparse import csr_matrix, dok_matrix
 from unidecode import unidecode
-from dict_utils import norm_dict, invert_dict1, invert_dict2, select_copy
+from .dict_utils import norm_dict, invert_dict1, invert_dict2, select_copy
 
 
 def norm_whitespace(text):

@@ -1,13 +1,17 @@
+from __future__ import division, unicode_literals
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import range
 import colorsys
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from dict_utils import invert_dict0
+from .dict_utils import invert_dict0
 
 
 def get_colors(N=100):
     HSV_tuples = [(x * 1. / (N+1), 1., 0.8) for x in range(N)]
-    return map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples)
+    return [colorsys.hsv_to_rgb(*x) for x in HSV_tuples]
 
 
 def colorindex(X, N=100):
@@ -53,18 +57,18 @@ def prepare_viz(doc_ids, docdict, doccats, x, y, catdesc={}, filepath='docs.json
         categories = set(invert_dict0(doccats).keys())
         catdesc = {cat: cat for cat in categories}
     else:
-        categories = catdesc.keys()
+        categories = list(catdesc.keys())
     colorlist = get_colors(len(categories))
     colordict = {cat: (255 * colorlist[i][0], 255 * colorlist[i][1], 255 * colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
     # save as json
     print("saving json")
     data_json = []
     for i, key in enumerate(doc_ids):
-        data_json.append({"id": key, "x": x[i], "y": y[i], "title": str(
+        data_json.append({"id": key, "x": x[i], "y": y[i], "title": unicode(
             key) + " (%s)" % catdesc[doccats[key]], "description": docdict[key], "color": "rgb(%i,%i,%i)" % colordict[doccats[key]]})
     # if we have test points, do the same again
     for i, key in enumerate(doc_ids_test):
-        data_json.append({"id": key, "x": x_test[i], "y": y_test[i], "title": str(key) + " (%s) - TEST POINT" % catdesc[
+        data_json.append({"id": key, "x": x_test[i], "y": y_test[i], "title": unicode(key) + " (%s) - TEST POINT" % catdesc[
                          doccats[key]], "description": docdict[key], "color": "rgb(%i,%i,%i)" % colordict[doccats[key]]})
     with open(filepath, "w") as f:
         f.write(json.dumps(data_json, indent=2))
@@ -85,7 +89,7 @@ def basic_viz(doc_ids, doccats, x, y, catdesc={}, title='', doc_ids_test=[], x_t
         categories = set(invert_dict0(doccats).keys())
         catdesc = {cat: cat for cat in categories}
     else:
-        categories = catdesc.keys()
+        categories = list(catdesc.keys())
     colorlist = get_colors(len(categories))
     colordict = {cat: (colorlist[i][0], colorlist[i][1], colorlist[i][2]) for i, cat in enumerate(sorted(categories))}
     # plot scatter plot
@@ -134,7 +138,7 @@ def json2plot(jsonpath, title='', baseline=False):
                    "pmcpar methods": 16,
                    "pmcpar results": 17}
         doccats = {d["id"]: catdesc[d["title"].split("(")[-1][:-1]] for d in data_json}
-        basic_viz(doc_ids, doccats, x, y, {v: k for k, v in catdesc.iteritems()}, title)
+        basic_viz(doc_ids, doccats, x, y, {v: k for k, v in catdesc.items()}, title)
     else:
         doccats = {d["id"]: d["title"].split("(")[-1][:-1] for d in data_json}
         basic_viz(doc_ids, doccats, x, y, {}, title)

@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 from collections import defaultdict
 from sys import float_info as fi
 from math import sqrt, log
@@ -237,5 +238,5 @@ def compute_sim(x, y, sim='linear'):
     elif sim == 'sokal':
         return _sokal_sim(x, y)
     else:
-        print "ERROR: sim not known!!"
+        print("ERROR: sim not known!!")
         return None

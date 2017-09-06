@@ -1,6 +1,7 @@
 from __future__ import division
+from __future__ import absolute_import
 import numpy as np
-from dict_utils import invert_dict1, invert_dict2, select_copy
+from .dict_utils import invert_dict1, invert_dict2, select_copy
 
 
 def knn(K_map, train_ids, test_ids, doccats, k=25, adapt=True, alpha=5, weight=True):
@@ -78,7 +79,7 @@ def get_labels(likely_cat, threshold='max'):
     for tid in likely_cat:
         # either take the most likely category
         if threshold == 'max':
-            labels[tid] = [max(likely_cat[tid].keys(), key=likely_cat[tid].get)]
+            labels[tid] = [max(list(likely_cat[tid].keys()), key=likely_cat[tid].get)]
         # or all categories with a score above threshold
         else:
             labels[tid] = [cat for cat in likely_cat[tid] if likely_cat[tid][cat] >= threshold]

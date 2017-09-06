@@ -1,3 +1,5 @@
+## READ ME
+
 This repository contains several functions to analyze text corpora.
 Mainly, text documents can be transformed into (sparse, dictionary based) tf-idf features, based on which the similarities between the documents can be computed, the dataset can be classified with knn, or the corpus can be visualized in two dimensions. 
 

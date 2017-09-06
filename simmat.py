@@ -1,6 +1,10 @@
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import range
 import numpy as np
-from features import features2mat
-from simcoefs import compute_sim
+from .features import features2mat
+from .simcoefs import compute_sim
 
 
 def dist2kernel(D, perp=30, tol=10e-4, verbose=False):
@@ -132,7 +136,7 @@ def compute_K_map(train_ids, test_ids, docfeats, sim='linear', train_idx=[], nor
         n_tr = len(train_ids)
         n_ts = len(test_ids)
         if not len(train_idx):
-            train_idx = range(n_tr)
+            train_idx = list(range(n_tr))
         K_map = np.array([[compute_sim(docfeats[did_ts], docfeats[train_ids[j]], sim)
                            for j in train_idx] for did_ts in test_ids])
     if normalize:
@@ -159,7 +163,7 @@ def get_k_most_similar(K, row_ids, col_ids, did, k=10):
     try:
         dididx = row_ids.index(did)
     except ValueError:
-        print "did must have a designated row in K"
+        print("did must have a designated row in K")
         return []
     # get k indexes for K
     k_idx = np.flipud(np.argsort(K[dididx, :]))[:k + 1]
