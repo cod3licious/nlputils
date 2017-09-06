@@ -25,9 +25,10 @@ examples
 
 additional dependencies: sklearn, matplotlib
 
-In the iPython Notebook at ``examples/examples.ipynb``_ are several examples on how to use the above described library components.
-.. _``examples/examples.ipynb``: https://github.com/cod3licious/nlputils/blob/master/examples/examples.ipynb
+In the iPython Notebook at ``examples/examples.ipynb_`` are several examples on how to use the above described library components. 
+.. _examples/examples.ipynb: https://github.com/cod3licious/nlputils/blob/master/examples/examples.ipynb
 
-If you have any questions please don't hesitate to send me an [email](mailto:cod3licious@gmail.com) and of course if you should find any bugs or want to contribute other improvements, pull requests are very welcome!
+If you have any questions please don't hesitate to send me an email_ and of course if you should find any bugs or want to contribute other improvements, pull requests are very welcome!
+.. _email: mailto:cod3licious@gmail.com
 
 [1] Rieck, Konrad, and Pavel Laskov. "Linear-time computation of similarity measures for sequential data." *Journal of Machine Learning Research* 9.Jan (2008): 23-48.
