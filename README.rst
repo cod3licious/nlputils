@@ -1,16 +1,16 @@
-READ ME
-=======
+nlputils
+========
 
 This repository contains several functions to analyze text corpora.
 Mainly, text documents can be transformed into (sparse, dictionary based) tf-idf features, based on which the similarities between the documents can be computed, the dataset can be classified with knn, or the corpus can be visualized in two dimensions. 
 
 The individual library components are largely independent of another (besides most of them using functions from ``dict_utils.py``), which means you might also find only parts of this library interesting, e.g. ``embedding.py``, which contains a concise python implementation of t-SNE, which can be used to embed data points in 2D based on any kind of similarity matrix, not necessarily created with the scripts from this library.
 
-The code is intended for research purposes. It was programmed for Python 2.7 but should theoretically also run on newer Python 3 versions - no guarantees on this though (open an issue if you find a bug, please)!
+The code is intended for research purposes. It was programmed for Python 2.7, but should theoretically also run on newer Python 3 versions - no guarantees on this though (open an issue if you find a bug, please)!
 
 installation
 ------------
-either download the code here and include the folder in your ``$PYTHONPATH`` or install via pip:
+You either download the code from here and include the nlputils folder in your ``$PYTHONPATH`` or install (the library components only) via pip:
 
     ``$ pip install nlputils``
 
@@ -26,12 +26,12 @@ dependencies: numpy, scipy, unidecode, matplotlib
 - ``ml_utils.py``: helper function to perform a cross-validation.
 - ``knn_classifier.py``: based on a similarity matrix, perform k-nearest-neighbors classification.
 - ``embedding.py``: based on a similarity matrix, project data points to 2D with classical scaling or t-SNE.
-- ``visualize.py``: helper functions to create a plot of the dataset based on the 2D embedding. This can create a json file which can be used with d3.js to create an interactive visualization of the data.
+- ``visualize.py``: helper functions to create a plot of the dataset based on the 2D embedding. This can also create a json file, which can be used with d3.js to create an interactive visualization of the data.
 
 examples
 --------
 
-additional dependencies: sklearn, matplotlib
+additional dependencies: sklearn
 
 In the iPython Notebook at |examples/examples.ipynb|_ are several examples on how to use the above described library components.
 
