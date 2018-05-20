@@ -15,8 +15,8 @@ def norm_whitespace(text):
 
 def preprocess_text(text, to_lower=True, norm_num=True):
     # clean the text: no fucked up characters, html, ...
-    if not isinstance(text, unicode):
-        text = text.decode("utf-8")
+    # if not isinstance(text, unicode):
+    #     text = text.decode("utf-8")
     text = unidecode(text)
     text = re.sub(r"http(s)?://\S*", " ", text)  # remove links (other html crap is assumed to be removed by bs)
     if to_lower:

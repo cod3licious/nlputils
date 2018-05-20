@@ -1,5 +1,5 @@
 from __future__ import unicode_literals, division, print_function, absolute_import
-from builtins import range
+from builtins import range, str
 import colorsys
 import json
 import numpy as np
@@ -62,11 +62,11 @@ def prepare_viz(doc_ids, docdict, doccats, x, y, catdesc={}, filepath='docs.json
     print("saving json")
     data_json = []
     for i, key in enumerate(doc_ids):
-        data_json.append({"id": key, "x": x[i], "y": y[i], "title": unicode(
+        data_json.append({"id": key, "x": x[i], "y": y[i], "title": str(
             key) + " (%s)" % catdesc[doccats[key]], "description": docdict[key], "color": "rgb(%i,%i,%i)" % colordict[doccats[key]]})
     # if we have test points, do the same again
     for i, key in enumerate(doc_ids_test):
-        data_json.append({"id": key, "x": x_test[i], "y": y_test[i], "title": unicode(key) + " (%s) - TEST POINT" % catdesc[
+        data_json.append({"id": key, "x": x_test[i], "y": y_test[i], "title": str(key) + " (%s) - TEST POINT" % catdesc[
                          doccats[key]], "description": docdict[key], "color": "rgb(%i,%i,%i)" % colordict[doccats[key]]})
     with open(filepath, "w") as f:
         f.write(json.dumps(data_json, indent=2))
