@@ -7,6 +7,7 @@ Mainly, text documents can be transformed into (sparse, dictionary based) tf-idf
 The individual library components are largely independent of another (besides most of them using functions from ``dict_utils.py``), which means you might also find only parts of this library interesting, e.g. ``embedding.py``, which contains a concise python implementation of t-SNE, which can be used to embed data points in 2D based on any kind of similarity matrix, not necessarily created with the scripts from this library.
 
 If any of this code was helpful for your research, please consider citing it: ::
+
     @misc{franziska_horn_2018_1254413,
       author       = {Franziska Horn},
       title        = {cod3licious/nlputils},
