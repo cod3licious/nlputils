@@ -23,7 +23,7 @@ If any of this code was helpful for your research, please consider citing it:
     }
 
 
-The code is intended for research purposes. It was programmed for Python 2.7, but should also run on newer Python 3 versions - no guarantees on this though (open an issue if you find a bug, please)!
+The code is intended for research purposes. It was programmed for Python 2.7, but should also run on newer Python 3 versions - please open an issue if you find something isn't working there!
 
 
 installation
