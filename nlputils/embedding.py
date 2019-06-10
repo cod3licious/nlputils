@@ -5,7 +5,7 @@ from scipy.sparse.linalg import eigsh
 from scipy.spatial.distance import pdist, squareform
 
 
-def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True, max_iter=1500):
+def tsne_sim(S, no_dims=2, earlystop=True, init="random", verbose=True, max_iter=1500):
     """
     TSNE_Sim Performs symmetric t-SNE on similarity matrix S
        mappedX = tsne_sim(S, no_dims)
@@ -26,7 +26,7 @@ def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True, max_iter
     epsilon = 500.                                     # initial learning rate
     min_gain = .01                                     # minimum gain for delta-bar-delta
     # initialize the solution
-    if init == 'kpca' and no_dims == 2:
+    if init == "kpca" and no_dims == 2:
         # kPCA initialization
         x, y = proj2d(S, use_tsne=False)
         mappedX = np.zeros((n, no_dims))
@@ -50,7 +50,7 @@ def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True, max_iter
         # sum_mappedX = np.sum(np.square(mappedX), 1)
         # Student-t distribution
         # num = 1 / (1 + np.add(np.add(-2 * np.dot(mappedX, mappedX.T), sum_mappedX).T, sum_mappedX))
-        num = 1 / (1 + squareform(pdist(mappedX, 'sqeuclidean')))
+        num = 1 / (1 + squareform(pdist(mappedX, "sqeuclidean")))
         np.fill_diagonal(num, 0.)                       # set diagonal to zero
         Q = num / np.sum(num)                             # normalize to get probabilities
         Q = np.maximum(Q, 1e-12)
@@ -82,11 +82,11 @@ def tsne_sim(S, no_dims=2, earlystop=True, init='random', verbose=True, max_iter
                 else:
                     last_cost = cost
             if verbose:
-                print('Iteration %i: error is %.5f' % (itr + 1, cost))
+                print("Iteration %i: error is %.5f" % (itr + 1, cost))
     return mappedX
 
 
-def classical_scaling(K, nev=2, evcrit='LM'):
+def classical_scaling(K, nev=2, evcrit="LM"):
     """
     compute 2 eigenvalues and -vectors of a similarity matrix
     Input:
@@ -103,7 +103,7 @@ def classical_scaling(K, nev=2, evcrit='LM'):
     return np.dot(V.real, np.diag(np.sqrt(np.abs(D.real))))
 
 
-def proj2d(K, use_tsne=True, evcrit='LM', max_iter=1500, verbose=True):
+def proj2d(K, use_tsne=True, evcrit="LM", max_iter=1500, verbose=True):
     """
     wrapper function to project data to 2D
     """
@@ -116,13 +116,13 @@ def proj2d(K, use_tsne=True, evcrit='LM', max_iter=1500, verbose=True):
     else:
         if verbose:
             print("performing classical scaling: %i datapoints" % K.shape[0])
-        if evcrit == 'LM' or evcrit == 'SM':
+        if evcrit == "LM" or evcrit == "SM":
             X = classical_scaling(K, evcrit=evcrit)
             x = X[:, 0]
             y = X[:, 1]
-        elif evcrit == 'LS':
-            x = classical_scaling(K, nev=1, evcrit='LM')
-            y = classical_scaling(K, nev=1, evcrit='SM')
+        elif evcrit == "LS":
+            x = classical_scaling(K, nev=1, evcrit="LM")
+            y = classical_scaling(K, nev=1, evcrit="SM")
         else:
             print("ERROR: evcrit not known!")
             return None

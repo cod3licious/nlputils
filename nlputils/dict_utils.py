@@ -58,7 +58,7 @@ def vec2dict(vector):
     return {i: val for i, val in enumerate(vector)}
 
 
-def norm_dict(somedict, norm='max', n_all=0):
+def norm_dict(somedict, norm="max", n_all=0):
     """
     Input:
         somedict: a dictionary with values of something
@@ -71,17 +71,17 @@ def norm_dict(somedict, norm='max', n_all=0):
     # can't normalize empty dicts
     if not somedict:
         return somedict
-    if norm == 'binary':
+    if norm == "binary":
         return {k: 1. for k in somedict}
-    elif norm == 'sum':
+    elif norm == "sum":
         N = float(sum(somedict.values()))
-    elif norm == 'max':
+    elif norm == "max":
         N = float(max(np.abs(list(somedict.values()))))
-    elif norm == 'length':
+    elif norm == "length":
         N = np.linalg.norm(list(somedict.values()))
-    elif norm == 'mean':
+    elif norm == "mean":
         N = np.mean(list(somedict.values()) + [0.] * (n_all - len(somedict)))
-    elif norm == 'std':
+    elif norm == "std":
         N = np.std(list(somedict.values()) + [0.] * (n_all - len(somedict)))
     else:
         print("ERROR: norm not known!!")

@@ -184,7 +184,7 @@ def _sokal_sim(x, y):
     return a / (2. * _histint_sim(x, x) + 2. * _histint_sim(y, y) - 3. * a)
 
 
-def compute_sim(x, y, sim='linear'):
+def compute_sim(x, y, sim="linear"):
     """
     compute the similarity between x and y
     Input:
@@ -196,46 +196,50 @@ def compute_sim(x, y, sim='linear'):
     Returns:
         - a single number representing the similarity between x and y
     """
-    if sim == 'linear':
-        return _polynomial_sim(x, y, 1)
-    elif sim == 'polynomial':
-        return _polynomial_sim(x, y)
-    elif sim == 'sigmoidal':
-        return _sigmoidal_sim(x, y)
-    elif sim == 'histint':
-        return _histint_sim(x, y)
-    elif sim == 'gaussian':
-        return _gaussian_sim(x, y)
-    elif sim == 'minkowski':
-        return _minkowski_sim(x, y)
-    elif sim == 'sqeucl':
-        return _minkowski_sim(x, y, 2)
-    elif sim == 'manhattan':
-        return _minkowski_sim(x, y, 1)
-    elif sim == 'canberra':
-        return _canberra_sim(x, y)
-    elif sim == 'chisq':
-        return _canberra_sim(x, y, 2)
-    elif sim == 'chebyshev':
-        return _chebyshev_sim(x, y)
-    elif sim == 'hellinger':
-        return _hellinger_sim(x, y)
-    elif sim == 'jenshan':
-        return _jenshan_sim(x, y)
-    elif sim == 'simpson':
-        return _simpson_sim(x, y)
-    elif sim == 'braun':
-        return _braun_sim(x, y)
-    elif sim == 'kulczynski':
-        return _kulczynski_sim(x, y)
-    elif sim == 'jaccard':
-        return _jaccard_sim(x, y)
-    elif sim == 'dice':
-        return _dice_sim(x, y)
-    elif sim == 'otsuka':
-        return _otsuka_sim(x, y)
-    elif sim == 'sokal':
-        return _sokal_sim(x, y)
-    else:
-        print("ERROR: sim not known!!")
-        return None
+    s = None
+    try:
+        if sim == "linear":
+            s = _polynomial_sim(x, y, 1)
+        elif sim == "polynomial":
+            s = _polynomial_sim(x, y)
+        elif sim == "sigmoidal":
+            s = _sigmoidal_sim(x, y)
+        elif sim == "histint":
+            s = _histint_sim(x, y)
+        elif sim == "gaussian":
+            s = _gaussian_sim(x, y)
+        elif sim == "minkowski":
+            s = _minkowski_sim(x, y)
+        elif sim == "sqeucl":
+            s = _minkowski_sim(x, y, 2)
+        elif sim == "manhattan":
+            s = _minkowski_sim(x, y, 1)
+        elif sim == "canberra":
+            s = _canberra_sim(x, y)
+        elif sim == "chisq":
+            s = _canberra_sim(x, y, 2)
+        elif sim == "chebyshev":
+            s = _chebyshev_sim(x, y)
+        elif sim == "hellinger":
+            s = _hellinger_sim(x, y)
+        elif sim == "jenshan":
+            s = _jenshan_sim(x, y)
+        elif sim == "simpson":
+            s = _simpson_sim(x, y)
+        elif sim == "braun":
+            s = _braun_sim(x, y)
+        elif sim == "kulczynski":
+            s = _kulczynski_sim(x, y)
+        elif sim == "jaccard":
+            s = _jaccard_sim(x, y)
+        elif sim == "dice":
+            s = _dice_sim(x, y)
+        elif sim == "otsuka":
+            s = _otsuka_sim(x, y)
+        elif sim == "sokal":
+            s = _sokal_sim(x, y)
+        else:
+            print("ERROR: sim not known!!")
+    except ZeroDivisionError:
+        s = 0.
+    return s

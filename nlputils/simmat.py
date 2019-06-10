@@ -61,7 +61,7 @@ def compute_K(docids, docfeats, sim='linear', normalize=False):
         - symmetric similarity matrix of size len(docids)xlen(docids)
     """
     # if linear similarity or variant thereof, we're quicker with a dot product
-    if sim in ('linear', 'cosine', 'angularsim', 'angulardist'):
+    if sim in ("linear", "cosine", "angularsim", "angulardist"):
         # transform features into matrix
         if isinstance(docfeats, dict):
             featmat, _ = features2mat(docfeats, docids, featurenames=[])
@@ -74,11 +74,11 @@ def compute_K(docids, docfeats, sim='linear', normalize=False):
         # compute similarity matrix
         S = featmat.dot(featmat.T).toarray()
         # transform further
-        if sim in ('angularsim', 'angulardist'):
+        if sim in ("angularsim", "angulardist"):
             # make sure values are in the correct range (roundoff errors)
             S = np.minimum(S, 1)
             S = np.maximum(S, 0)
-            if sim == 'angularsim':
+            if sim == "angularsim":
                 S = 1. - 2. * np.arccos(S) / np.pi
             else:
                 # distance
@@ -98,7 +98,7 @@ def compute_K(docids, docfeats, sim='linear', normalize=False):
     return S
 
 
-def compute_K_map(train_ids, test_ids, docfeats, sim='linear', train_idx=[], normalize=False):
+def compute_K_map(train_ids, test_ids, docfeats, sim="linear", train_idx=[], normalize=False):
     """
     Imput:
         - train_ids, test_ids: list of document ids (keys of docfeats)
@@ -109,22 +109,22 @@ def compute_K_map(train_ids, test_ids, docfeats, sim='linear', train_idx=[], nor
         - kernel map of size len(test_ids)xlen(train_ids) with similarities of the test to the training docs
     """
     # if linear similarity or variant thereof, we're quicker with a dot product
-    if sim in ('linear', 'cosine', 'angularsim', 'angulardist'):
+    if sim in ("linear", "cosine", "angularsim", "angulardist"):
         # transform features into matrix
         featmat_train, featurenames = features2mat(docfeats, train_ids)
         featmat_test, featurenames = features2mat(docfeats, test_ids, featurenames)
         # possibly normalize vectors
-        if sim in ('cosine', 'angularsim', 'angulardist'):
+        if sim in ("cosine", "angularsim", "angulardist"):
             featmat_train /= np.linalg.norm(featmat_train, axis=0)
             featmat_test /= np.linalg.norm(featmat_test, axis=0)
         # compute kernel map
         K_map = featmat_test.dot(featmat_train.T).toarray()
         # transform further
-        if sim in ('angularsim', 'angulardist'):
+        if sim in ("angularsim", "angulardist"):
             # make sure values are in the correct range (roundoff errors)
             K_map = np.minimum(K_map, 1)
             K_map = np.maximum(K_map, 0)
-            if sim == 'angularsim':
+            if sim == "angularsim":
                 K_map = 1. - 2. * np.arccos(K_map) / np.pi
             else:
                 # distance

@@ -25,7 +25,7 @@ def knn(K_map, train_ids, test_ids, doccats, k=25, adapt=True, alpha=5, weight=T
     # dict with cat:[docs]
     cat_docs = invert_dict1(doccats)
     for cat in categories:
-        if not cat in cat_docs:
+        if cat not in cat_docs:
             cat_docs[cat] = []
     # k for every category
     if adapt:
@@ -60,7 +60,7 @@ def knn(K_map, train_ids, test_ids, doccats, k=25, adapt=True, alpha=5, weight=T
     return likely_cat
 
 
-def get_labels(likely_cat, threshold='max'):
+def get_labels(likely_cat, threshold="max"):
     """
     Input:
         - likely_cat: the confidence scores for every category for every test doc as a dict (scores normalized to 1)
@@ -77,7 +77,7 @@ def get_labels(likely_cat, threshold='max'):
     labels = {}
     for tid in likely_cat:
         # either take the most likely category
-        if threshold == 'max':
+        if threshold == "max":
             labels[tid] = [max(likely_cat[tid].keys(), key=likely_cat[tid].get)]
         # or all categories with a score above threshold
         else:

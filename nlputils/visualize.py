@@ -36,7 +36,7 @@ def pretty_coloring(X, varcol=0, N=100):
     return colors[coloridx, :]
 
 
-def prepare_viz(doc_ids, docdict, doccats, x, y, catdesc={}, filepath='docs.json', doc_ids_test=[], x_test=[], y_test=[]):
+def prepare_viz(doc_ids, docdict, doccats, x, y, catdesc={}, filepath="docs.json", doc_ids_test=[], x_test=[], y_test=[]):
     """
     function to prepare text data for 2 dim visualization by saving a json file, that is a list of dicts,
     where each dict decodes 1 doc with "id" (doc_id), "x" and "y" (2dim coordinates derived from the kernel matrix
@@ -72,7 +72,7 @@ def prepare_viz(doc_ids, docdict, doccats, x, y, catdesc={}, filepath='docs.json
         f.write(json.dumps(data_json, indent=2))
 
 
-def basic_viz(doc_ids, doccats, x, y, catdesc={}, title='', doc_ids_test=[], x_test=[], y_test=[]):
+def basic_viz(doc_ids, doccats, x, y, catdesc={}, title="", doc_ids_test=[], x_test=[], y_test=[]):
     """
     plot a scatter plot of the data in 2d
     Input:
@@ -95,24 +95,24 @@ def basic_viz(doc_ids, doccats, x, y, catdesc={}, title='', doc_ids_test=[], x_t
     for j, cat in enumerate(sorted(categories)):
         # get docids that belong to the current category
         didx_temp = [i for i, did in enumerate(doc_ids) if cat == doccats[did]]
-        plt.plot(x[didx_temp], y[didx_temp], 'o', label=catdesc[cat],
+        plt.plot(x[didx_temp], y[didx_temp], "o", label=catdesc[cat],
                  color=colordict[cat], alpha=0.6, markeredgewidth=0)
         # possibly do the same for test points
         if doc_ids_test:
             didx_temp = [i for i, did in enumerate(doc_ids_test) if cat == doccats[did]]
-            plt.plot(x_test[didx_temp], y_test[didx_temp], 'o', label=catdesc[
+            plt.plot(x_test[didx_temp], y_test[didx_temp], "o", label=catdesc[
                      cat], color=colordict[cat], alpha=1., markeredgewidth=0)
     plt.xticks([], [])
     plt.yticks([], [])
     plt.xlim([x.min(), x.max()])
     plt.ylim([y.min(), y.max()])
-    # plt.axis('equal')
+    # plt.axis("equal")
     plt.title(title, fontsize=16)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), numpoints=1)
+    plt.legend(loc="center left", bbox_to_anchor=(1, 0.5), numpoints=1)
     # plt.tight_layout()
 
 
-def json2plot(jsonpath, title='', baseline=False):
+def json2plot(jsonpath, title="", baseline=False):
     data_json = json.load(open(jsonpath))
     doc_ids = [d["id"] for d in data_json]
     x = np.array([d["x"] for d in data_json])

@@ -51,12 +51,12 @@ def get_bigram_scores(text_words, min_bgfreq=2.):
             # count unigrams and bigrams
             try:
                 unigram_freq[word] += 1.
-            except:
+            except KeyError:
                 unigram_freq[word] = 1.
             if i:
                 try:
                     bigram_freq["%s %s" % (wordlist[i - 1], word)] += 1.
-                except:
+                except KeyError:
                     bigram_freq["%s %s" % (wordlist[i - 1], word)] = 1.
     # compute bigram scores
     bigram_scores = {}
@@ -142,7 +142,7 @@ class FeatureTransform(object):
         - renorm: how the features with applied weights should be renormalized
     """
 
-    def __init__(self, norm='max', weight=True, renorm='length', identify_bigrams=True,
+    def __init__(self, norm="max", weight=True, renorm="length", identify_bigrams=True,
                  to_lower=True, norm_num=True, bg_threshold=0.1):
         self.norm = norm
         self.weight = weight
