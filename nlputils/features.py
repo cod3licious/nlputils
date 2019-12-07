@@ -1,10 +1,10 @@
 from __future__ import unicode_literals, division, print_function, absolute_import
 from builtins import object
 import re
+import unicodedata
 from math import log
 from collections import Counter
 from scipy.sparse import csr_matrix, dok_matrix
-from unidecode import unidecode
 from .dict_utils import norm_dict, invert_dict1, invert_dict2, select_copy
 
 
@@ -17,7 +17,8 @@ def preprocess_text(text, to_lower=True, norm_num=True):
     # clean the text: no fucked up characters, html, ...
     # if not isinstance(text, unicode):
     #     text = text.decode("utf-8")
-    text = unidecode(text)
+    nfkd_form = unicodedata.normalize('NFKD', text)
+    text = nfkd_form.encode('ASCII', 'ignore')
     text = re.sub(r"http(s)?://\S*", " ", text)  # remove links (other html crap is assumed to be removed by bs)
     if to_lower:
         text = text.lower()
